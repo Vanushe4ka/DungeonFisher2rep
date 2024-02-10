@@ -5,7 +5,7 @@ using System.Collections.Generic;
 public class Generator
 {
     const int DUNGEON_SIZE = 100;
-    const int MIN_WALL_SIZE = 4;
+    const int MIN_WALL_SIZE = 6;
     const int MAX_WALL_SIZE = 15;
     //const int MinRoomsQuantity = 6;
     //const int MaxRoomsQuantity = 10;
@@ -257,7 +257,7 @@ public class Generator
                 {
                     if (Dungeon[i, j] == 2)
                     {
-                        if (i + 1 < DUNGEON_SIZE && i - 1 >= 0 && Dungeon[i + 1, j] == 2 && Dungeon[i - 1, j] == 2)
+                        if (i + 1 < DUNGEON_SIZE && i - 1 >= 0 && Dungeon[i + 1, j] == 2 && Dungeon[i - 1, j] == 2 && i + 2 < DUNGEON_SIZE && i - 2 >= 0 && Dungeon[i + 2, j] == 2 && Dungeon[i - 2, j] == 2)
                         {
                             if (j + 1 < DUNGEON_SIZE && Dungeon[i, j + 1] == 1)
                             {
@@ -270,7 +270,7 @@ public class Generator
                                 continue;
                             }
                         }
-                        if (j + 1 < DUNGEON_SIZE && j - 1 >= 0 && Dungeon[i, j + 1] == 2 && Dungeon[i, j - 1] == 2)
+                        if (j + 1 < DUNGEON_SIZE && j - 1 >= 0 && Dungeon[i, j + 1] == 2 && Dungeon[i, j - 1] == 2 && j + 2 < DUNGEON_SIZE && j - 2 >= 0 && Dungeon[i, j + 2] == 2 && Dungeon[i, j - 2] == 2)
                         {
                             if (i + 1 < DUNGEON_SIZE && Dungeon[i + 1, j] == 1)
                             {
@@ -452,6 +452,7 @@ public class Generator
         public Point SecondRoomPoint { get; }//maxX, maxY point
         protected Random Random;
         protected int[,] Dungeon;
+        public int[,] RoomMatrix;
         protected List<Room> AllRooms;
         public Room(Point? entranceDoor, Point firstRoomPoint, Point secondRoomPoint, int[,] dungeon, List<Room> allRooms, Random random)
         {
@@ -466,6 +467,14 @@ public class Generator
             Random = random;
             thisDungeonSize += (SecondRoomPoint.X - FirstRoomPoint.X) * (SecondRoomPoint.Y - FirstRoomPoint.Y);
             DrawRoom();
+            RoomMatrix = new int[SecondRoomPoint.Y - FirstRoomPoint.Y+1 , SecondRoomPoint.X - FirstRoomPoint.X +1];
+            for (int i = FirstRoomPoint.Y; i <= SecondRoomPoint.Y; i++)
+            {
+                for (int j = FirstRoomPoint.X; j <= SecondRoomPoint.X; j++)
+                {
+                    RoomMatrix[i- FirstRoomPoint.Y, j- FirstRoomPoint.X] = Dungeon[i, j];
+                }
+            }
         }
         public virtual void DrawRoom()
         {
@@ -552,7 +561,7 @@ public class Generator
                 {
                     MinLeftLength = Math.Min(MinLeftLength, LeftLength[i] - 1);
                     MinRightLength = Math.Min(MinRightLength, RightLength[i] - 1);
-                    if ((i + 1) * (MinRightLength + MinLeftLength) > MaxAvaliableSize && i >= MIN_WALL_SIZE && (MinRightLength + MinLeftLength) >= MIN_WALL_SIZE && MinLeftLength > 0 && MinRightLength > 0)
+                    if ((i + 1) * (MinRightLength + MinLeftLength) > MaxAvaliableSize && i >= MIN_WALL_SIZE && (MinRightLength + MinLeftLength) >= MIN_WALL_SIZE && MinLeftLength > 1 && MinRightLength > 1)
                     {
                         MaxAvaliableSize = (i + 1) * (MinRightLength + MinLeftLength);
                         FirstRectPoint = DoorPos + direction;
@@ -604,7 +613,7 @@ public class Generator
                 {
                     MinUpLength = Math.Min(MinUpLength, UpLength[i] - 1);
                     MinDownLength = Math.Min(MinDownLength, DownLength[i] - 1);
-                    if ((i + 1) * (MinDownLength + MinUpLength) > MaxAvaliableSize && i >= MIN_WALL_SIZE && (MinDownLength + MinUpLength) >= MIN_WALL_SIZE && MinDownLength > 0 && MinUpLength > 0)
+                    if ((i + 1) * (MinDownLength + MinUpLength) > MaxAvaliableSize && i >= MIN_WALL_SIZE && (MinDownLength + MinUpLength) >= MIN_WALL_SIZE && MinDownLength > 1 && MinUpLength > 1)
                     {
                         MaxAvaliableSize = (i + 1) * (MinDownLength + MinUpLength);
                         FirstRectPoint = DoorPos + direction;
@@ -701,7 +710,7 @@ public class Generator
         }
 
     }
-    public int[,] Generate()
+    public (int[,],List<Room> allRooms) Generate()
     {
         int[,] Dungeon = new int[DUNGEON_SIZE, DUNGEON_SIZE];
         Random random = new Random();
@@ -716,7 +725,7 @@ public class Generator
             Room thisRoom = AllRooms[random.Next(0, AllRooms.Count)];
             thisRoom.AddRoom();
         }
-        return Dungeon;
+        return (Dungeon,AllRooms);
     }
     //static void Main(string[] args)
     //{

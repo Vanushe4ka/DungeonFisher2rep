@@ -7,31 +7,31 @@ public class Level1Manager : MonoBehaviour
 {
     public Tilemap level;
     public TileBase[] tiles;
+    int[,] dungeonMatrix;
+    List<Generator.Room> AllRooms;
+
     
     void Start()
     {
-       
         Generator generator = new Generator();
-        int[,] Dungeon = generator.Generate();
-        for (int i = 0; i < Dungeon.GetLength(0); i++)
+        (int[,] dungeon, List<Generator.Room> allRooms) = generator.Generate();
+        dungeonMatrix = dungeon;
+        AllRooms = allRooms;
+        for (int i = 0; i < dungeon.GetLength(0); i++)
         {
-            for (int j = 0; j < Dungeon.GetLength(1); j++)
+            for (int j = 0; j < dungeon.GetLength(1); j++)
             {
-                if (Dungeon[i,j] == 1)
+                if (dungeon[i,j] == 1)
                 {
                     level.SetTile(new Vector3Int(i, j, 0), tiles[0]);
                 }
-                if (Dungeon[i, j] == 3)
+                if (dungeon[i, j] == 3)
                 {
                     level.SetTile(new Vector3Int(i, j, 0), tiles[1]);
                 }
             }
         }
+
     }
-    //
-    //// Update is called once per frame
-    //void Update()
-    //{
-    //    
-    //}
+    
 }
