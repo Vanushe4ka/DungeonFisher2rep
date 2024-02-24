@@ -84,12 +84,12 @@ public class Level1Manager : MonoBehaviour
                     }
                     else if (dungeonMatrix[y, x-1] == 1)
                     {
-                        tentacles.Add(Instantiate(tentaclesPrefab, new Vector2(x + 1.5f, y+1), new Quaternion(0, 0, 0, 0)));
+                        tentacles.Add(Instantiate(tentaclesPrefab, new Vector2(x + 1.5f, y+1.3f), new Quaternion(0, 0, 0, 0)));
                         
                     }
                     else if (dungeonMatrix[y, x+1] == 1)
                     {
-                        tentacles.Add(Instantiate(tentaclesPrefab, new Vector2(x + 0.5f, y+1), new Quaternion(0, 0, 0, 0)));
+                        tentacles.Add(Instantiate(tentaclesPrefab, new Vector2(x + 0.5f, y+1.3f), new Quaternion(0, 0, 0, 0)));
                         
                     }
                 }
@@ -98,22 +98,23 @@ public class Level1Manager : MonoBehaviour
     }
     Vector2 ChoiseEnemyPoint(Generator.Room room)
     {
-        Debug.Log($"Matrix {room.RoomMatrix.GetLength(0)}*{room.RoomMatrix.GetLength(1)}");
-        for (int y = 0; y < room.RoomMatrix.GetLength(0); y++)
-        {
-            string str = "";
-            for (int x = 0; x < room.RoomMatrix.GetLength(1); x++)
-            {
-                str += room.RoomMatrix[y, x];
-            }
-            Debug.Log(str);
-        }
+        //Debug.Log($"Matrix {room.RoomMatrix.GetLength(0)}*{room.RoomMatrix.GetLength(1)}");
+        //for (int y = 0; y < room.RoomMatrix.GetLength(0); y++)
+        //{
+        //    string str = "";
+        //    for (int x = 0; x < room.RoomMatrix.GetLength(1); x++)
+        //    {
+        //        str += room.RoomMatrix[y, x];
+        //    }
+        //    Debug.Log(str);
+        //}
         Vector2 point = new Vector2(Random.Range(0,room.RoomMatrix.GetLength(1)), Random.Range(0, room.RoomMatrix.GetLength(0)));
         while (room.RoomMatrix[(int)point.y, (int)point.x] != 1)
         {
            point = new Vector2(Random.Range(0, room.RoomMatrix.GetLength(1)), Random.Range(0, room.RoomMatrix.GetLength(0)));
-        } 
-        return point + new Vector2(room.FirstRoomPoint.X, room.FirstRoomPoint.Y+1);
+        }
+        Debug.Log(point.x + " " + point.y + " - " + (point.x + room.FirstRoomPoint.X) + " " + (point.y + room.FirstRoomPoint.Y));
+        return point + new Vector2(room.FirstRoomPoint.X + 1, room.FirstRoomPoint.Y+1);
     }
     void CheckOpeningMap()
     {
@@ -121,7 +122,7 @@ public class Level1Manager : MonoBehaviour
         //Debug.Log(openedDungeonMatrix[playerPos.x, playerPos.y]);
         if (openedDungeonMatrix[playerPos.y, playerPos.x] == 0)
         {
-            //Debug.Log("CheckRoomList");
+            Debug.Log("CheckRoomList");
             foreach(Generator.Room room in generator.AllRooms)
             {
                 //Debug.Log("matrixSize - " + room.RoomMatrix.GetLength(0) + "*" + room.RoomMatrix.GetLength(1));

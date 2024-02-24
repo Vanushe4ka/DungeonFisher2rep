@@ -25,10 +25,10 @@ public class Gun : MonoBehaviour
         spriteRenderer = gameObject.GetComponent<SpriteRenderer>();
         animator = gameObject.GetComponent<Animator>();
     }
-    public virtual void FixedUpdate()
+    public virtual void Update()
     {
         if (shotClodownTimer > 0) { shotClodownTimer -= Time.deltaTime; }
-        if (Input.GetMouseButtonDown(0) && shotClodownTimer <= 0) { Shot();shotClodownTimer = shotColdownTime; }
+        if (Input.GetKeyDown(KeyCode.Mouse0) && shotClodownTimer <= 0) {Shot();shotClodownTimer = shotColdownTime; }
     }
     public virtual void Shot()
     {

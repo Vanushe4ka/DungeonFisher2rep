@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 6072503291541562353}
   - component: {fileID: 6018332247216254981}
   - component: {fileID: 6072503291541562358}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: Tentacles
   m_TagString: Untagged
   m_Icon: {fileID: 0}
