@@ -1,10 +1,11 @@
 using System.Collections;
 using System;
 using System.Collections.Generic;
-
-public class Generator
+using UnityEngine;
+using Random = System.Random;
+public class Generator 
 {
-    const int DUNGEON_SIZE = 100;
+    public const int DUNGEON_SIZE = 100;
     const int MIN_WALL_SIZE = 6;
     const int MAX_WALL_SIZE = 15;
     //const int MinRoomsQuantity = 6;
@@ -13,6 +14,7 @@ public class Generator
     const int MIN_DUNGEON_SIZE = 900;
     const int MAX_DUNGEON_SIZE = 1100;
     static int thisDungeonSize;
+    public List<Room> AllRooms = new List<Room>();
     public struct Point
     {
         public int X { get; }
@@ -286,7 +288,14 @@ public class Generator
                     }
                 }
             }
-
+            RoomMatrix = new int[SecondRoomPoint.Y - FirstRoomPoint.Y + 1, SecondRoomPoint.X - FirstRoomPoint.X + 1];
+            for (int i = FirstRoomPoint.Y; i <= SecondRoomPoint.Y; i++)
+            {
+                for (int j = FirstRoomPoint.X; j <= SecondRoomPoint.X; j++)
+                {
+                    RoomMatrix[i - FirstRoomPoint.Y, j - FirstRoomPoint.X] = Dungeon[i, j];
+                }
+            }
         }
     }
     public class CrossRoom : Room
@@ -447,6 +456,8 @@ public class Generator
 
     public class Room
     {
+        public bool isVisited = false;
+        public int[] EnemiesQuantity = new int[1];
         public List<Point> FreeDirections = new List<Point> { new Point(1, 0), new Point(-1, 0), new Point(0, 1), new Point(0, -1) };
         public Point FirstRoomPoint { get; }//minX, minY point 
         public Point SecondRoomPoint { get; }//maxX, maxY point
@@ -456,6 +467,7 @@ public class Generator
         protected List<Room> AllRooms;
         public Room(Point? entranceDoor, Point firstRoomPoint, Point secondRoomPoint, int[,] dungeon, List<Room> allRooms, Random random)
         {
+            
             if (entranceDoor != null)
             {
                 FreeDirections.Remove((Point)entranceDoor);
@@ -714,9 +726,9 @@ public class Generator
     {
         int[,] Dungeon = new int[DUNGEON_SIZE, DUNGEON_SIZE];
         Random random = new Random();
-        List<Room> AllRooms = new List<Room>();
         StartRoom startRoom = new StartRoom(null, new Point(48, 48), new Point(52, 52), Dungeon, AllRooms, random);
         AllRooms.Add(startRoom);
+        thereBossRoom = true;
         startRoom.AddRoom();
         //int RoomQuantity = random.Next(MinRoomsQuantity, MaxRoomsQuantity);
         int TargetDungeonSize = random.Next(MIN_DUNGEON_SIZE, MAX_DUNGEON_SIZE);
@@ -725,6 +737,12 @@ public class Generator
             Room thisRoom = AllRooms[random.Next(0, AllRooms.Count)];
             thisRoom.AddRoom();
         }
+        thereBossRoom = false;
+        do
+        {
+            Room thisRoom = AllRooms[random.Next(1, AllRooms.Count)];
+            thisRoom.AddRoom();
+        } while (!thereBossRoom);
         return (Dungeon,AllRooms);
     }
     //static void Main(string[] args)

@@ -19,11 +19,22 @@ MonoBehaviour:
   - m_Id: 0
     m_Sprites:
     - {fileID: 21300000, guid: 3ae393f56426b5746b8e15638ee7e998, type: 3}
+    - {fileID: 21300000, guid: c618a691efcabbf45aa835dd160ebf87, type: 3}
+    - {fileID: 21300000, guid: 55f1b80a8e41eeb40996975afc9698c7, type: 3}
+    - {fileID: 21300000, guid: 34749ed5d12afab4f8e5134c08f2f5c9, type: 3}
+    - {fileID: 21300000, guid: 19f1d9eb45cfb314ba8732337177f762, type: 3}
+    - {fileID: 21300000, guid: 8aee641977a9f5b4c92add94959045ba, type: 3}
+    - {fileID: 21300000, guid: dcb1815e8ab31be4392f4e2310133106, type: 3}
+    - {fileID: 21300000, guid: 1a09b7f9a98a03241abf11d8ed0ecd2a, type: 3}
+    - {fileID: 21300000, guid: 5c8caaf7b0c6d754e956cd91de4828e1, type: 3}
+    - {fileID: 21300000, guid: eb7bdb06e99046044a3488a9086fdc0d, type: 3}
+    - {fileID: 21300000, guid: d5fa36eabb5ce4149ac2c5ca6f677431, type: 3}
+    - {fileID: 21300000, guid: 660d08ca2f1e4ea47a01df47fcd16892, type: 3}
     m_GameObject: {fileID: 0}
     m_MinAnimationSpeed: 1
     m_MaxAnimationSpeed: 1
     m_PerlinScale: 0.5
-    m_Output: 0
+    m_Output: 1
     m_ColliderType: 1
     m_RandomTransform: 0
     m_Neighbors: 01000000010000000100000001000000

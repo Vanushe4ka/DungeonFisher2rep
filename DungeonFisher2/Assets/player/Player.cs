@@ -11,7 +11,6 @@ public class Player : MonoBehaviour
     public float moveSpeed;
     public float animMoveSpeed;
     Vector2Int rotateDirection = new Vector2Int(0, -1);
-    Vector2 prevMoveDir = Vector2.zero;
     public Transform cameraTransform;
     public float cameraSpeed;
     public Gun[] AllGuns;
@@ -22,10 +21,14 @@ public class Player : MonoBehaviour
         spriteRenderer = gameObject.GetComponent<SpriteRenderer>();
         animator = gameObject.GetComponent<Animator>();
     }
-
+    public void CalculateLayer()
+    {
+        spriteRenderer.sortingOrder = 400 - Mathf.RoundToInt(transform.position.y*4);
+    }
     // Update is called once per frame
     void FixedUpdate()
     {
+        CalculateLayer();
         cameraTransform.position = Vector3.Lerp(cameraTransform.position , new Vector3(gameObject.transform.position.x, gameObject.transform.position.y,-10), cameraSpeed);
         Vector2 moveDirection = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical")).normalized;
         if (moveDirection.x != 0 || moveDirection.y != 0)
@@ -62,7 +65,17 @@ public class Player : MonoBehaviour
         {
             ActiveGun.spriteRenderer.flipY = false;
             ActiveGun.spriteRenderer.flipX = false;
-            ActiveGun.animator.SetBool("isDownDirection", true);
+            if (!ActiveGun.animator.GetBool("isDownDirection"))
+            {
+                //получение инфы о текущей анимации
+                AnimatorClipInfo[] currentClipInfo = ActiveGun.animator.GetCurrentAnimatorClipInfo(0);
+                if (currentClipInfo[0].clip.name == "SideShotAnim")//если это анимация выстрела в бок
+                {
+                    float normalizedTime = ActiveGun.animator.GetCurrentAnimatorStateInfo(0).normalizedTime;
+                    ActiveGun.animator.Play("DownShotAnim", 0, normalizedTime);
+                }
+                ActiveGun.animator.SetBool("isDownDirection", true);
+            }
             ActiveGun.spriteRenderer.sortingOrder = spriteRenderer.sortingOrder - 1;
             Quaternion rotation = Quaternion.AngleAxis(angle + 90, Vector3.forward);
             ActiveGun.transform.rotation = Quaternion.Slerp(ActiveGun.transform.rotation, rotation, ActiveGun.rotationSpeed * Time.deltaTime);
@@ -74,7 +87,18 @@ public class Player : MonoBehaviour
         {
             ActiveGun.spriteRenderer.flipY = false;
             ActiveGun.spriteRenderer.flipX = false;
-            ActiveGun.animator.SetBool("isDownDirection", false);
+            if (ActiveGun.animator.GetBool("isDownDirection"))
+            {
+                //получение инфы о текущей анимации
+                AnimatorClipInfo[] currentClipInfo = ActiveGun.animator.GetCurrentAnimatorClipInfo(0);
+                if (currentClipInfo[0].clip.name == "DownShotAnim")//если это анимация выстрела в низ
+                {
+                    float normalizedTime = ActiveGun.animator.GetCurrentAnimatorStateInfo(0).normalizedTime;
+                    ActiveGun.animator.Play("SideShotAnim", 0, normalizedTime);
+                }
+                ActiveGun.animator.SetBool("isDownDirection", false);
+            }
+            
             ActiveGun.spriteRenderer.sortingOrder = spriteRenderer.sortingOrder + 1;
             Quaternion rotation = Quaternion.AngleAxis(angle, Vector3.forward);
             ActiveGun.transform.rotation = Quaternion.Slerp(ActiveGun.transform.rotation, rotation, ActiveGun.rotationSpeed * Time.deltaTime);
@@ -86,7 +110,17 @@ public class Player : MonoBehaviour
         {
             ActiveGun.spriteRenderer.flipY = false;
             ActiveGun.spriteRenderer.flipX = false;
-            ActiveGun.animator.SetBool("isDownDirection", true);
+            if (!ActiveGun.animator.GetBool("isDownDirection"))
+            {
+                //получение инфы о текущей анимации
+                AnimatorClipInfo[] currentClipInfo = ActiveGun.animator.GetCurrentAnimatorClipInfo(0);
+                if (currentClipInfo[0].clip.name == "SideShotAnim")//если это анимация выстрела в бок
+                {
+                    float normalizedTime = ActiveGun.animator.GetCurrentAnimatorStateInfo(0).normalizedTime;
+                    ActiveGun.animator.Play("DownShotAnim", 0, normalizedTime);
+                }
+                ActiveGun.animator.SetBool("isDownDirection", true);
+            }
             ActiveGun.spriteRenderer.sortingOrder = spriteRenderer.sortingOrder + 1;
             Quaternion rotation = Quaternion.AngleAxis(angle + 90, Vector3.forward);
             ActiveGun.transform.rotation = Quaternion.Slerp(ActiveGun.transform.rotation, rotation, ActiveGun.rotationSpeed * Time.deltaTime);
@@ -98,7 +132,17 @@ public class Player : MonoBehaviour
         {
             ActiveGun.spriteRenderer.flipY = true;
             ActiveGun.spriteRenderer.flipX = false;
-            ActiveGun.animator.SetBool("isDownDirection", false);
+            if (ActiveGun.animator.GetBool("isDownDirection"))
+            {
+                //получение инфы о текущей анимации
+                AnimatorClipInfo[] currentClipInfo = ActiveGun.animator.GetCurrentAnimatorClipInfo(0);
+                if (currentClipInfo[0].clip.name == "DownShotAnim")//если это анимация выстрела в низ
+                {
+                    float normalizedTime = ActiveGun.animator.GetCurrentAnimatorStateInfo(0).normalizedTime;
+                    ActiveGun.animator.Play("SideShotAnim", 0, normalizedTime);
+                }
+                ActiveGun.animator.SetBool("isDownDirection", false);
+            }
             ActiveGun.spriteRenderer.sortingOrder = spriteRenderer.sortingOrder - 1;
             Quaternion rotation = Quaternion.AngleAxis(angle, Vector3.forward);
             ActiveGun.transform.rotation = Quaternion.Slerp(ActiveGun.transform.rotation, rotation, ActiveGun.rotationSpeed * Time.deltaTime);
@@ -106,6 +150,7 @@ public class Player : MonoBehaviour
             animator.SetInteger("direction", 2);
             rotateDirection = new Vector2Int(-1, 0);
         }
+        ActiveGun.direction = rotateDirection;
         ActiveGun.transform.localPosition = new Vector3(ActiveGun.startGunPos.x * Mathf.Cos(angle * Mathf.PI / 180), ActiveGun.startGunPos.y * -Mathf.Sin(angle * Mathf.PI / 180), 0);
 
     }
