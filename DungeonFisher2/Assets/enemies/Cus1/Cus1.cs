@@ -4,7 +4,23 @@ using UnityEngine;
 
 public class Cus1 : Enemies
 {
-    public int pushForce; 
+    public int pushForce;
+    public bool attacking = false;
+    public int damageDealt = 1;
+    //public float attackingTime =0.25f;
+    //private float attackingTimer;
+    void OnCollisionEnter2D(Collision2D collision)
+    {
+        GameObject otherObject = collision.gameObject;
+        if (otherObject.tag == "player" && attacking)
+        {
+            attacking = false;
+            player.Damage(damageDealt);
+            Vector3 direction = (player.transform.position - transform.position).normalized;
+            player.rigidbody.AddForce(direction * (pushForce/2), ForceMode2D.Impulse);
+        }
+
+    }
     void FixedUpdate()
     {
         CalculateLayer();
@@ -44,8 +60,13 @@ public class Cus1 : Enemies
     public override void Atack()
     {
         animator.SetTrigger("atack");
+        attacking = true;
         Vector3 direction = (player.transform.position - transform.position).normalized;
         rigidbody.AddForce(direction * pushForce, ForceMode2D.Impulse);
         rechargeTimer = rechargeTime;
+    }
+    public void EndAtacking()
+    {
+        attacking = false;
     }
 }

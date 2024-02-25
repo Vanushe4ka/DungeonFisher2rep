@@ -164,8 +164,10 @@ MonoBehaviour:
   player: {fileID: 0}
   atackRadius: 1.5
   hitBox: {fileID: 8535152289507966527}
-  rechargeTime: 5
+  rechargeTime: 2
   pushForce: 15
+  attacking: 0
+  damageDealt: 1
 --- !u!1 &8535152289507966520
 GameObject:
   m_ObjectHideFlags: 0
@@ -178,7 +180,7 @@ GameObject:
   - component: {fileID: 8535152289507966526}
   - component: {fileID: 8535152289507966524}
   - component: {fileID: 8535152289507966527}
-  m_Layer: 8
+  m_Layer: 9
   m_Name: HitBox
   m_TagString: Untagged
   m_Icon: {fileID: 0}

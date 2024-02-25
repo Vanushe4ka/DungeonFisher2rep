@@ -5,7 +5,7 @@ using UnityEngine;
 public class Player : MonoBehaviour
 {
     // Start is called before the first frame update
-    Rigidbody2D rigidbody;
+    public Rigidbody2D rigidbody;
     SpriteRenderer spriteRenderer;
     Animator animator;
     public float moveSpeed;
@@ -15,15 +15,86 @@ public class Player : MonoBehaviour
     public float cameraSpeed;
     public Gun[] AllGuns;
     public Gun ActiveGun;
+
+    public int HP;
+    public int maxHP;
+    public GameObject[] HPImages;
     void Start()
     {
         rigidbody = gameObject.GetComponent<Rigidbody2D>();
         spriteRenderer = gameObject.GetComponent<SpriteRenderer>();
         animator = gameObject.GetComponent<Animator>();
+        DrawHP();
     }
     public void CalculateLayer()
     {
         spriteRenderer.sortingOrder = 400 - Mathf.RoundToInt(transform.position.y*4);
+    }
+    public void Damage(int hp)
+    {
+        HP -= hp;
+        HP = Mathf.Max(HP, 0);
+        StartCoroutine(Blink());
+        DrawHP();
+    }
+    IEnumerator Blink()
+    {
+        float elapsedTime = 0f;
+        float blinkDuration = 0.15f;
+        while (elapsedTime < blinkDuration)
+        {
+            float t = Mathf.Cos(elapsedTime / blinkDuration * 2 * Mathf.PI); // »нтерпол€ци€ синуса от 0 до PI
+            float alpha = t / 8 + 0.75f; // ќграничение альфа не менее minAlpha
+
+            Color color = spriteRenderer.color;
+            color.a = alpha;
+            spriteRenderer.color = color;
+
+            elapsedTime += 0.02f;
+            yield return new WaitForSeconds(0.02f);
+        }
+
+        // ”становить альфа обратно на 1 в конце анимации
+        Color endColor = spriteRenderer.color;
+        endColor.a = 1f;
+        spriteRenderer.color = endColor;
+    }
+    public void AddMaxHP(int hp)
+    {
+        maxHP += hp;
+        HP += hp;
+        DrawHP();
+    }
+    public void SubMaxHP(int hp)
+    {
+        maxHP -= hp;
+        HP = Mathf.Min(HP, maxHP);
+        DrawHP();
+    }
+    public void AddHP(int hp)
+    {
+        HP += hp;
+        HP = Mathf.Min(HP, maxHP);
+        DrawHP();
+    }
+    void DrawHP()
+    {
+        for (int i = 0; i < HPImages.Length; i++)
+        {
+            if (maxHP < (i+1) * 2) { HPImages[i].SetActive(false); }
+            else
+            {
+                HPImages[i].SetActive(true);
+                HPImages[i].GetComponent<Animator>().SetInteger("HP", HP - (i) * 2);
+            }
+        }
+    }
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Backspace)) { Damage(1); }
+        if (Input.GetKeyDown(KeyCode.Delete)) { SubMaxHP(2); }
+        if (Input.GetKeyDown(KeyCode.Alpha1)) { AddHP(1); }
+        if (Input.GetKeyDown(KeyCode.Return)) { AddMaxHP(2); }
     }
     // Update is called once per frame
     void FixedUpdate()
@@ -154,4 +225,5 @@ public class Player : MonoBehaviour
         ActiveGun.transform.localPosition = new Vector3(ActiveGun.startGunPos.x * Mathf.Cos(angle * Mathf.PI / 180), ActiveGun.startGunPos.y * -Mathf.Sin(angle * Mathf.PI / 180), 0);
 
     }
+
 }

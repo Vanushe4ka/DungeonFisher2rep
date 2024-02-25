@@ -14,6 +14,7 @@ public class Enemies : MonoBehaviour
     public float atackRadius;
     protected Vector2Int direction;
     public EnemyHitbox hitBox;
+    
 
     public float rechargeTime;
     protected float rechargeTimer;
@@ -28,12 +29,13 @@ public class Enemies : MonoBehaviour
     {
         HP -= damage;
         StartCoroutine(Blink());
-        
+        if (HP <= 0) { Destroy(gameObject); }
     }
     public void CalculateLayer()
     {
         spriteRenderer.sortingOrder = 400- Mathf.RoundToInt(transform.position.y*4);
     }
+    
     protected void DetermDirection()
     {
         Vector2 dir = (player.transform.position - transform.position).normalized;
@@ -97,7 +99,7 @@ public class Enemies : MonoBehaviour
             elapsedTime += 0.02f;
             yield return new WaitForSeconds(0.02f);
         }
-        if (HP <= 0) { Destroy(gameObject); }////////////////////////////////////////
+        
         // Установить альфа обратно на 1 в конце анимации
         Color endColor = spriteRenderer.color;
         endColor.a = 1f;
