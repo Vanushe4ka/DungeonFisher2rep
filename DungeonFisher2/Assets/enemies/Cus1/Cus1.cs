@@ -21,10 +21,11 @@ public class Cus1 : Enemies
         }
 
     }
-    void FixedUpdate()
+    public override void FixedUpdate()
     {
+        base.FixedUpdate();
         CalculateLayer();
-        if (rechargeTimer <= 0)
+        if (rechargeTimer <= 0 && !isDead)
         {
             DetermDirection();
             animator.SetBool("run", true);

@@ -164,6 +164,7 @@ MonoBehaviour:
   player: {fileID: 0}
   atackRadius: 1.5
   hitBox: {fileID: 8535152289507966527}
+  isDead: 0
   rechargeTime: 2
   pushForce: 15
   attacking: 0

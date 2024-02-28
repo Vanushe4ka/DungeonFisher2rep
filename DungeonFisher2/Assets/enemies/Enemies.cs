@@ -14,22 +14,53 @@ public class Enemies : MonoBehaviour
     public float atackRadius;
     protected Vector2Int direction;
     public EnemyHitbox hitBox;
-    
+    public int[,] dungeon;
 
+    public bool isDead;
     public float rechargeTime;
     protected float rechargeTimer;
+
+    private Vector2 originalScale;
     void Start()
     {
         rechargeTimer = rechargeTime;
         rigidbody = gameObject.GetComponent<Rigidbody2D>();
         spriteRenderer = gameObject.GetComponent<SpriteRenderer>();
         animator = gameObject.GetComponent<Animator>();
+        originalScale = transform.localScale;
+    }
+    public virtual void FixedUpdate()
+    {
+        if (isDead)
+        {
+            int dungeonPoint = dungeon[Mathf.RoundToInt(transform.position.y) - 1, Mathf.RoundToInt(transform.position.x) - 1];
+            if (dungeonPoint == 0 || dungeonPoint == 2 || dungeonPoint == 5)
+            {
+                rigidbody.velocity *= 0.8f;
+                transform.localScale = Vector3.Lerp(transform.localScale, new Vector3(0, 0, 0), 0.1f);
+                if (transform.localScale.x <= 0.25f) { Destroy(gameObject); }
+
+            }
+            else
+            {
+                transform.localScale = originalScale;
+            }
+        }
     }
     public void Damage(int damage)
     {
         HP -= damage;
         StartCoroutine(Blink());
-        if (HP <= 0) { Destroy(gameObject); }
+        
+    }
+    public virtual void Dead(Vector3 pushVector,float pushForce)
+    {
+        isDead = true;
+        animator.SetBool("dead", true);
+        gameObject.layer = 10;
+        StartCoroutine(ChangeColorBlackout());
+        Vector3 direction = (transform.position - pushVector).normalized;
+        rigidbody.AddForce(direction * pushForce, ForceMode2D.Impulse);
     }
     public void CalculateLayer()
     {
@@ -82,6 +113,22 @@ public class Enemies : MonoBehaviour
 
         // Применяем смещение к текущей позиции
         rigidbody.MovePosition(rigidbody.position + movement);
+    }
+    private IEnumerator ChangeColorBlackout()
+    {
+        float elapsedTime = 0f;
+        float duration = 1;
+        Color originalColor = spriteRenderer.color;
+        originalColor.a = 1;
+        Color targetColor = new Color(originalColor.r - 0.5f, originalColor.g - 0.5f, originalColor.b - 0.5f, originalColor.a);
+        while (elapsedTime < duration)
+        {
+            float t = elapsedTime / duration;
+            spriteRenderer.color = Color.Lerp(originalColor, targetColor, t);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+        spriteRenderer.color = targetColor; // Убедиться, что цвет стал точно целевым
     }
     IEnumerator Blink()
     {

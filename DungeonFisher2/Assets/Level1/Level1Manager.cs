@@ -113,16 +113,23 @@ public class Level1Manager : MonoBehaviour
         {
            point = new Vector2(Random.Range(0, room.RoomMatrix.GetLength(1)), Random.Range(0, room.RoomMatrix.GetLength(0)));
         }
-        Debug.Log(point.x + " " + point.y + " - " + (point.x + room.FirstRoomPoint.X) + " " + (point.y + room.FirstRoomPoint.Y));
+       ///Debug.Log(point.x + " " + point.y + " - " + (point.x + room.FirstRoomPoint.X) + " " + (point.y + room.FirstRoomPoint.Y));
         return point + new Vector2(room.FirstRoomPoint.X + 1, room.FirstRoomPoint.Y+1);
+    }
+    void CreateEnemy(int enemyNumber,Generator.Room room)
+    {
+        enemies.Add(Instantiate(enemiesPrefabs[enemyNumber], ChoiseEnemyPoint(room), Quaternion.identity));
+        Enemies enemyScript = enemies[enemies.Count - 1].GetComponent<Enemies>();
+        enemyScript.player = player;
+        enemyScript.dungeon = dungeonMatrix;
     }
     void CheckOpeningMap()
     {
         Vector2Int playerPos = new Vector2Int(Mathf.RoundToInt(player.transform.position.x), Mathf.RoundToInt(player.transform.position.y)-1);
-        //Debug.Log(openedDungeonMatrix[playerPos.x, playerPos.y]);
+       ///Debug.Log(openedDungeonMatrix[playerPos.x, playerPos.y]);
         if (openedDungeonMatrix[playerPos.y, playerPos.x] == 0)
         {
-            Debug.Log("CheckRoomList");
+            //Debug.Log("CheckRoomList");
             foreach(Generator.Room room in generator.AllRooms)
             {
                 //Debug.Log("matrixSize - " + room.RoomMatrix.GetLength(0) + "*" + room.RoomMatrix.GetLength(1));
@@ -147,10 +154,8 @@ public class Level1Manager : MonoBehaviour
                                 isFight = true;
                                 AddTentacles(room);
                             }
-                           
-                            enemies.Add(Instantiate(enemiesPrefabs[i], ChoiseEnemyPoint(room), Quaternion.identity));
-                            Enemies enemyScript = enemies[enemies.Count - 1].GetComponent<Enemies>();
-                            enemyScript.player = player;
+
+                            CreateEnemy(i, room);
                         }
                     }
 
@@ -195,7 +200,11 @@ public class Level1Manager : MonoBehaviour
         CheckOpeningMap();
         if (isFight)
         {
-            enemies.RemoveAll(item => item == null);
+            //enemies.RemoveAll(item => item == null);
+            for (int i =0;i<enemies.Count;i++)
+            {
+                if (enemies[i] == null || enemies[i].GetComponent<Enemies>().isDead == true) { enemies.RemoveAt(i);i--; }
+            }
             if (enemies.Count == 0)
             {
                 foreach(GameObject tentacle in tentacles)

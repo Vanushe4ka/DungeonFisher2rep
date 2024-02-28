@@ -22,6 +22,7 @@ public class EnemyHitbox : MonoBehaviour
         if (otherObject.tag == "playerBullet")
         {
             parent.Damage(otherObject.GetComponent<Bullet>().damage);
+            if (parent.HP <= 0) { parent.Dead(otherObject.transform.position,otherObject.GetComponent<Bullet>().speed);gameObject.layer = 10; }
             Destroy(otherObject);
         }
 
