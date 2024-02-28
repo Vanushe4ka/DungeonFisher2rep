@@ -18,7 +18,7 @@ public class Enemies : MonoBehaviour
 
     public bool isDead;
     public float rechargeTime;
-    protected float rechargeTimer;
+    public float rechargeTimer;
 
     private Vector2 originalScale;
     void Start()

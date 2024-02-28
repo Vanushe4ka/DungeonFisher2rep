@@ -18,6 +18,7 @@ public class Cus1 : Enemies
             player.Damage(damageDealt);
             Vector3 direction = (player.transform.position - transform.position).normalized;
             player.rigidbody.AddForce(direction * (pushForce/2), ForceMode2D.Impulse);
+            if (player.HP <= 0) { player.Dead(); }
         }
 
     }

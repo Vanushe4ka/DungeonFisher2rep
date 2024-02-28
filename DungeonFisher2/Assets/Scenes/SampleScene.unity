@@ -840,6 +840,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b784b451cc29b2d4a81a611fb8e8e279, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  isFight: 0
+  tentacles: []
   level: {fileID: 192055686}
   tiles:
   - {fileID: 11400000, guid: 9f8ed3f42a15ad246b9b839b69a926bd, type: 2}
@@ -918,8 +920,6 @@ MonoBehaviour:
   BridgesWeights:
   - 10
   - 1
-  isFight: 0
-  tentacles: []
   tentaclesPrefab: {fileID: 6072503291541562359, guid: 5405b982a8a132845b022a2a1f19f62a, type: 3}
   enemiesPrefabs:
   - {fileID: 8535152288808985194, guid: 7026b23ca8698e8418a69b4ca13b8c54, type: 3}
@@ -1458,6 +1458,8 @@ MonoBehaviour:
   - {fileID: 50025883}
   - {fileID: 1945778445}
   - {fileID: 973743415}
+  isDead: 0
+  levelManager: {fileID: 0}
 --- !u!58 &915664376
 CircleCollider2D:
   m_ObjectHideFlags: 0

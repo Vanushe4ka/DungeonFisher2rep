@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 
 
-public class Level1Manager : MonoBehaviour
+public class Level1Manager : LevelManager
 {
     Generator generator = new Generator();
     public Tilemap level;
@@ -57,14 +57,11 @@ public class Level1Manager : MonoBehaviour
     [SerializeField]
     float[] BridgesWeights;
 
-    public bool isFight = false;
-    public List<GameObject> tentacles;
-    List<GameObject> enemies = new List<GameObject>();
+    
     public GameObject tentaclesPrefab;
     public GameObject[] enemiesPrefabs;
     void AddTentacles(Generator.Room room)
     {
-        
         for (int y = room.FirstRoomPoint.Y; y <= room.SecondRoomPoint.Y; y++)
         {
             for (int x = room.FirstRoomPoint.X; x <= room.SecondRoomPoint.X; x++)
@@ -98,16 +95,6 @@ public class Level1Manager : MonoBehaviour
     }
     Vector2 ChoiseEnemyPoint(Generator.Room room)
     {
-        //Debug.Log($"Matrix {room.RoomMatrix.GetLength(0)}*{room.RoomMatrix.GetLength(1)}");
-        //for (int y = 0; y < room.RoomMatrix.GetLength(0); y++)
-        //{
-        //    string str = "";
-        //    for (int x = 0; x < room.RoomMatrix.GetLength(1); x++)
-        //    {
-        //        str += room.RoomMatrix[y, x];
-        //    }
-        //    Debug.Log(str);
-        //}
         Vector2 point = new Vector2(Random.Range(0,room.RoomMatrix.GetLength(1)), Random.Range(0, room.RoomMatrix.GetLength(0)));
         while (room.RoomMatrix[(int)point.y, (int)point.x] != 1)
         {
@@ -228,6 +215,8 @@ public class Level1Manager : MonoBehaviour
         
         
         (int[,] dungeon, List<Generator.Room> allRooms) = generator.Generate();
+        player.dungeon = dungeon;
+        player.levelManager = this;
         openedMap = new Texture2D(100, 100);
         fullMap = new Texture2D(100, 100);
         DistributionEnemies();
