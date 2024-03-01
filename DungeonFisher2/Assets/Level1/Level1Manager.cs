@@ -13,6 +13,7 @@ public class Level1Manager : LevelManager
     int[,] openedDungeonMatrix = new int[100,100];
     public Player player; 
     List<Generator.Room> AllRooms;
+    public Vector2 bossRoomCenter;//временно публичный
     public Texture2D fullMap;
     public Texture2D openedMap;
     [SerializeField]
@@ -162,29 +163,41 @@ public class Level1Manager : LevelManager
                     {
                         for (int j=0;j < openedDungeonMatrix.GetLength(1); j++)
                         {
-                            if (openedDungeonMatrix[i,j] == 0) { openedMap.SetPixel(j, i, Color.white); }
-                            else if(openedDungeonMatrix[i, j] == 1) { openedMap.SetPixel(j, i, Color.black); }
-                            else { openedMap.SetPixel(j, i, Color.green); }
+                            if(openedDungeonMatrix[i, j] == 1) 
+                            {
+                                if (i > 0 && i < openedDungeonMatrix.GetLength(0) && j > 0 && j < openedDungeonMatrix.GetLength(1) &&
+                                    openedDungeonMatrix[i+1, j] == 1 && openedDungeonMatrix[i - 1, j] == 1 && openedDungeonMatrix[i, j+1] == 1 && openedDungeonMatrix[i, j-1] == 1)
+                                {
+                                    openedMap.SetPixel(j, i, new Color(0.8901f, 0.7843f, 0.7019f, Random.Range(0.5f, 1f)));
+                                }
+                                else
+                                {
+                                    openedMap.SetPixel(j, i, new Color(0.5725f, 0.4823f, 0.4901f, Random.Range(0.5f, 1f)));
+                                }
+                            }
+                            else if (openedDungeonMatrix[i, j] == 3)
+                            {
+                                openedMap.SetPixel(j, i, Color.black);
+                            }
+                            else { openedMap.SetPixel(j, i, new Color(0, 0, 0, 0)); }
 
                         }
                     }
-                    openedMap.SetPixel(playerPos.x, playerPos.y, Color.red);
-                    openedMap.SetPixel(playerPos.x+1, playerPos.y, Color.red);
-                    openedMap.SetPixel(playerPos.x+1, playerPos.y+1, Color.red);
-                    openedMap.SetPixel(playerPos.x, playerPos.y+1, Color.red);
-                    openedMap.SetPixel(playerPos.x-1, playerPos.y, Color.red);
-                    openedMap.SetPixel(playerPos.x, playerPos.y-1, Color.red);
-                    openedMap.SetPixel(playerPos.x-1, playerPos.y-1, Color.red);
-                    openedMap.SetPixel(playerPos.x-1, playerPos.y+1, Color.red);
-                    openedMap.SetPixel(playerPos.x+1, playerPos.y-1, Color.red);
                     openedMap.Apply();
                 }
             }
         }
     }
+    private void MapHandler()
+    {
+        mapImage.uvRect = new Rect(new Vector2(((player.transform.position.x - 0.5f) / Generator.DUNGEON_SIZE) - (mapImage.uvRect.width/2), ((player.transform.position.y - 0.5f) / Generator.DUNGEON_SIZE) - (mapImage.uvRect.height / 2)), mapImage.uvRect.size);
+        bossMarkMap.localPosition = ((bossRoomCenter / Generator.DUNGEON_SIZE) -mapImage.uvRect.position)  * (mapImage.rectTransform.rect.size *2);
+    }
     private void FixedUpdate()
     {
         CheckOpeningMap();
+        MapHandler();
+        
         if (isFight)
         {
             //enemies.RemoveAll(item => item == null);
@@ -215,10 +228,17 @@ public class Level1Manager : LevelManager
         
         
         (int[,] dungeon, List<Generator.Room> allRooms) = generator.Generate();
+        for (int i = 0; i < allRooms.Count; i++)
+        {
+            if (allRooms[i] is Generator.BossRoom) { bossRoomCenter = new Vector2((allRooms[i].FirstRoomPoint.X + allRooms[i].SecondRoomPoint.X)/2+1, (allRooms[i].FirstRoomPoint.Y + allRooms[i].SecondRoomPoint.Y) / 2+1); }
+        }
         player.dungeon = dungeon;
         player.levelManager = this;
         openedMap = new Texture2D(100, 100);
+        openedMap.filterMode = FilterMode.Point;
         fullMap = new Texture2D(100, 100);
+        mapImage.texture = openedMap;
+        
         DistributionEnemies();
         for (int i = 0; i < dungeon.GetLength(0); i++)
         {

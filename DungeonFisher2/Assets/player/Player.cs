@@ -24,6 +24,9 @@ public class Player : MonoBehaviour
     private Vector3 originalScale;
     public int[,] dungeon;
     public LevelManager levelManager;
+
+    public GameObject ripplesPrefab;
+    private bool isRipplesCreated;
     void Start()
     {
         rigidbody = gameObject.GetComponent<Rigidbody2D>();
@@ -269,6 +272,15 @@ public class Player : MonoBehaviour
             int dungeonPoint = dungeon[Mathf.RoundToInt(transform.position.y) - 1, Mathf.RoundToInt(transform.position.x) - 1];
             if (dungeonPoint == 0 || dungeonPoint == 2 || dungeonPoint == 5)
             {
+                if (!isRipplesCreated)
+                {
+                    ripplesPrefab = Instantiate(ripplesPrefab, transform.position,transform.rotation);
+                    isRipplesCreated = true;
+                }
+                else
+                {
+                    if (ripplesPrefab != null) { ripplesPrefab.transform.position = transform.position; }
+                }
                 rigidbody.velocity *= 0.8f;
                 transform.localScale = Vector3.Lerp(transform.localScale, new Vector3(0, 0, 0), 0.1f);
                 //if (transform.localScale.x <= 0.25f) { Destroy(gameObject); }

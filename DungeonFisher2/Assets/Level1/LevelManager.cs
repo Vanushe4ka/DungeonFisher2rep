@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.UI;
 using UnityEngine;
 
 public class LevelManager : MonoBehaviour
@@ -8,6 +9,9 @@ public class LevelManager : MonoBehaviour
     public bool isFight = false;
     protected List<GameObject> enemies = new List<GameObject>();
     public List<GameObject> tentacles;
+    public RawImage mapImage;
+    public RectTransform playerMarkMap;
+    public RectTransform bossMarkMap;
     public void PlayerIsDead()
     {
         for (int i = 0; i < enemies.Count; i++)
@@ -21,5 +25,5 @@ public class LevelManager : MonoBehaviour
         tentacles.Clear();
         isFight = false;
     }
-
+    
 }

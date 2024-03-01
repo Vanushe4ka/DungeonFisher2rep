@@ -9,7 +9,7 @@ public class Cus1 : Enemies
     public int damageDealt = 1;
     //public float attackingTime =0.25f;
     //private float attackingTimer;
-    void OnCollisionEnter2D(Collision2D collision)
+    private void OnCollisionStay2D(Collision2D collision)
     {
         GameObject otherObject = collision.gameObject;
         if (otherObject.tag == "player" && attacking)
@@ -17,10 +17,9 @@ public class Cus1 : Enemies
             attacking = false;
             player.Damage(damageDealt);
             Vector3 direction = (player.transform.position - transform.position).normalized;
-            player.rigidbody.AddForce(direction * (pushForce/2), ForceMode2D.Impulse);
+            player.rigidbody.AddForce(direction * (pushForce / 2), ForceMode2D.Impulse);
             if (player.HP <= 0) { player.Dead(); }
         }
-
     }
     public override void FixedUpdate()
     {

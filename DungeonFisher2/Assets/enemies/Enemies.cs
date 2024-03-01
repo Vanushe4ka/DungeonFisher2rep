@@ -21,6 +21,8 @@ public class Enemies : MonoBehaviour
     public float rechargeTimer;
 
     private Vector2 originalScale;
+    private bool isRipplesCreated;
+    public GameObject ripplesPrefab;
     void Start()
     {
         rechargeTimer = rechargeTime;
@@ -39,7 +41,17 @@ public class Enemies : MonoBehaviour
                 rigidbody.velocity *= 0.8f;
                 transform.localScale = Vector3.Lerp(transform.localScale, new Vector3(0, 0, 0), 0.1f);
                 if (transform.localScale.x <= 0.25f) { Destroy(gameObject); }
-
+                if (!isRipplesCreated)
+                {
+                    ripplesPrefab = Instantiate(ripplesPrefab, transform.position,transform.rotation);
+                    
+                    
+                    isRipplesCreated = true;
+                }
+                else
+                {
+                    if (ripplesPrefab != null) { ripplesPrefab.transform.position = transform.position; }
+                }
             }
             else
             {

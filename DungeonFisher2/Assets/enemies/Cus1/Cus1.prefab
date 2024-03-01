@@ -166,6 +166,8 @@ MonoBehaviour:
   hitBox: {fileID: 8535152289507966527}
   isDead: 0
   rechargeTime: 2
+  rechargeTimer: 0
+  ripplesPrefab: {fileID: 7317459000653510441, guid: 981875008a6439848b6a5b6287ccb174, type: 3}
   pushForce: 15
   attacking: 0
   damageDealt: 1

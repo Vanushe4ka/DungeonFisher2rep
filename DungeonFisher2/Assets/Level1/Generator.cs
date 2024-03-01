@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Random = System.Random;
-public class Generator 
+public class Generator
 {
     public const int DUNGEON_SIZE = 100;
     const int MIN_WALL_SIZE = 6;
@@ -719,6 +719,8 @@ public class Generator
             AllRooms.Add(newRoom);
             Dungeon[DoorPos.Y + direction.Y, DoorPos.X + direction.X] = 3;
             Dungeon[DoorPos.Y, DoorPos.X] = 3;
+            RoomMatrix[DoorPos.Y - FirstRoomPoint.Y, DoorPos.X -FirstRoomPoint.X] = 3;////////////////
+            newRoom.RoomMatrix[DoorPos.Y + direction.Y - newRoom.FirstRoomPoint.Y, DoorPos.X + direction.X - newRoom.FirstRoomPoint.X] = 3;
         }
 
     }
@@ -745,190 +747,5 @@ public class Generator
         } while (!thereBossRoom);
         return (Dungeon,AllRooms);
     }
-    //static void Main(string[] args)
-    //{
-    //    int[,] Dungeon = new int[DUNGEON_SIZE, DUNGEON_SIZE];
-    //    Random random = new Random();
-    //    List<Room> AllRooms = new List<Room>();
-    //    StartRoom startRoom = new StartRoom(null, new Point(48, 48), new Point(52, 52), Dungeon, AllRooms, random);
-    //    AllRooms.Add(startRoom);
-    //    startRoom.AddRoom();
-    //    //int RoomQuantity = random.Next(MinRoomsQuantity, MaxRoomsQuantity);
-    //    int TargetDungeonSize = random.Next(MIN_DUNGEON_SIZE, MAX_DUNGEON_SIZE);
-    //    while (thisDungeonSize < TargetDungeonSize)
-    //    {
-    //        Room thisRoom = AllRooms[random.Next(0, AllRooms.Count)];
-    //        thisRoom.AddRoom();
-    //    }
-    //    ConsolePrint();
-    //    Console.Read();
-    //    void ConsolePrint()
-    //    {
-    //        for (int i = 0; i < DUNGEON_SIZE; i++)
-    //        {
-    //            for (int j = 0; j < DUNGEON_SIZE; j++)
-    //            {
-    //                if (Dungeon[i, j] == 0) { Console.Write("  "); }
-    //                if (Dungeon[i, j] == 1) { Console.Write(" `"); }
-    //                if (Dungeon[i, j] == 2) { Console.Write(" #"); }
-    //                if (Dungeon[i, j] == 3) { Console.Write(" |"); }
-    //                if (Dungeon[i, j] == 4) { Console.Write(" @"); }
-    //                if (Dungeon[i, j] == 5) { Console.Write(" ."); }
-    //            }
-    //            Console.WriteLine();
-    //        }
-    //    }
-    //    void AddRoom(Point DoorPos, Point direction)
-    //    {
-    //        Point FirstRectPoint;
-    //        Point SecondRectPoint;
-    //        FirstRectPoint = DoorPos + direction;
-    //        SecondRectPoint = DoorPos + direction;
-    //        //Dungeon[FirstRectPoint.Y,  FirstRectPoint.X] = 4;
-    //        //Dungeon[SecondRectPoint.Y, SecondRectPoint.X] = 4;
-    //
-    //        if (direction.X == 0 && direction.Y != 0)
-    //        {
-    //            List<int> LeftLength = new List<int>();
-    //            List<int> RightLength = new List<int>();
-    //            int y = FirstRectPoint.Y;
-    //            while (y >= 0 && y < DUNGEON_SIZE && Dungeon[y, FirstRectPoint.X] == 0)
-    //            {
-    //                LeftLength.Add(0);
-    //                RightLength.Add(0);
-    //                int x = FirstRectPoint.X;
-    //                while (x >= 0 && Dungeon[y, x] == 0)
-    //                {
-    //                    LeftLength[LeftLength.Count - 1]++;
-    //                    x--;
-    //                }
-    //                x = FirstRectPoint.X;
-    //                while (x < DUNGEON_SIZE && Dungeon[y, x] == 0)
-    //                {
-    //                    RightLength[RightLength.Count - 1]++;
-    //                    x++;
-    //                }
-    //                y += direction.Y;
-    //            }
-    //            int MaxAvaliableSize = 0;
-    //            int MinLeftLength = int.MaxValue;
-    //            int MinRightLength = int.MaxValue;
-    //            for (int i = 0; i < LeftLength.Count; i++)
-    //            {
-    //                MinLeftLength = Math.Min(MinLeftLength, LeftLength[i] - 1);
-    //                MinRightLength = Math.Min(MinRightLength, RightLength[i] - 1);
-    //                if ((i + 1) * (MinRightLength + MinLeftLength) > MaxAvaliableSize && i >= MIN_WALL_SIZE && (MinRightLength + MinLeftLength) >= MIN_WALL_SIZE && MinLeftLength > 0 && MinRightLength > 0)
-    //                {
-    //                    MaxAvaliableSize = (i + 1) * (MinRightLength + MinLeftLength);
-    //                    FirstRectPoint = DoorPos + direction;
-    //                    FirstRectPoint = new Point(FirstRectPoint.X - MinLeftLength, FirstRectPoint.Y);
-    //                    SecondRectPoint = DoorPos + direction;
-    //                    SecondRectPoint = new Point(SecondRectPoint.X + MinRightLength, FirstRectPoint.Y + (direction.Y * i));
-    //                }
-    //            }
-    //            if (MaxAvaliableSize == 0)//can'not generate room 
-    //            {
-    //                Dungeon[DoorPos.Y, DoorPos.X] = 2;
-    //                return;
-    //            }
-    //            int minX = Math.Min(FirstRectPoint.X, SecondRectPoint.X);
-    //            int minY = Math.Min(FirstRectPoint.Y, SecondRectPoint.Y);
-    //            int maxX = Math.Max(FirstRectPoint.X, SecondRectPoint.X);
-    //            int maxY = Math.Max(FirstRectPoint.Y, SecondRectPoint.Y);
-    //
-    //            int Height = random.Next(MIN_WALL_SIZE, Math.Min(MAX_WALL_SIZE, maxY - minY) + 1);
-    //            int Width = random.Next(MIN_WALL_SIZE, Math.Min(MAX_WALL_SIZE, maxX - minX) + 1);
-    //
-    //            if (direction.Y == 1) { maxY = minY + Height; }
-    //            else { minY = maxY - Height; }
-    //            minX = Math.Min(Math.Max(DoorPos.X - Width / 2, minX), maxX - Width);
-    //            maxX = minX + Width;
-    //            for (int i = minY; i <= maxY; i++)
-    //            {
-    //                for (int j = minX; j <= maxX; j++)
-    //                {
-    //                    Dungeon[i, j] = 1;
-    //                    Dungeon[minY, j] = 2;
-    //                    Dungeon[maxY, j] = 2;
-    //                }
-    //                Dungeon[i, minX] = 2;
-    //                Dungeon[i, maxX] = 2;
-    //            }
-    //            Dungeon[DoorPos.Y + direction.Y, DoorPos.X] = 3;
-    //        }
-    //        if (direction.X != 0 && direction.Y == 0)
-    //        {
-    //            List<int> UpLength = new List<int>();
-    //            List<int> DownLength = new List<int>();
-    //            int x = FirstRectPoint.X;
-    //            while (x > 0 && x < DUNGEON_SIZE && Dungeon[FirstRectPoint.Y, x] == 0)
-    //            {
-    //                UpLength.Add(0);
-    //                DownLength.Add(0);
-    //                int y = FirstRectPoint.Y;
-    //                while (y >= 0 && Dungeon[y, x] == 0)
-    //                {
-    //                    UpLength[UpLength.Count - 1]++;
-    //                    y--;
-    //                }
-    //                y = FirstRectPoint.Y;
-    //                while (y < DUNGEON_SIZE && Dungeon[y, x] == 0)
-    //                {
-    //                    DownLength[DownLength.Count - 1]++;
-    //                    y++;
-    //                }
-    //                x += direction.X;
-    //
-    //            }
-    //            int MaxAvaliableSize = 0;
-    //            int MinUpLength = int.MaxValue;
-    //            int MinDownLength = int.MaxValue;
-    //            for (int i = 0; i < UpLength.Count; i++)
-    //            {
-    //                MinUpLength = Math.Min(MinUpLength, UpLength[i] - 1);
-    //                MinDownLength = Math.Min(MinDownLength, DownLength[i] - 1);
-    //                if ((i + 1) * (MinDownLength + MinUpLength) > MaxAvaliableSize && i >= MIN_WALL_SIZE && (MinDownLength + MinUpLength) >= MIN_WALL_SIZE && MinDownLength > 0 && MinUpLength > 0)
-    //                {
-    //                    MaxAvaliableSize = (i + 1) * (MinDownLength + MinUpLength);
-    //                    FirstRectPoint = DoorPos + direction;
-    //                    FirstRectPoint = new Point(FirstRectPoint.X, FirstRectPoint.Y - MinUpLength);
-    //                    SecondRectPoint = DoorPos + direction;
-    //                    SecondRectPoint = new Point(SecondRectPoint.X + (direction.X * i), SecondRectPoint.Y + MinDownLength);
-    //                }
-    //            }
-    //            if (MaxAvaliableSize == 0)//Can'not spawn room
-    //            {
-    //                Dungeon[DoorPos.Y, DoorPos.X] = 2;
-    //                return;
-    //            }
-    //            int minX = Math.Min(FirstRectPoint.X, SecondRectPoint.X);
-    //            int minY = Math.Min(FirstRectPoint.Y, SecondRectPoint.Y);
-    //            int maxX = Math.Max(FirstRectPoint.X, SecondRectPoint.X);
-    //            int maxY = Math.Max(FirstRectPoint.Y, SecondRectPoint.Y);
-    //
-    //            int Height = random.Next(MIN_WALL_SIZE, Math.Min(MAX_WALL_SIZE, maxY - minY) + 1);
-    //            int Width = random.Next(MIN_WALL_SIZE, Math.Min(MAX_WALL_SIZE, maxX - minX) + 1);
-    //
-    //            if (direction.X == 1) { maxX = minY + Width; }
-    //            else { minX = maxX - Width; }
-    //
-    //            minY = Math.Min(Math.Max(DoorPos.Y - Height / 2, minY), maxY - Height);
-    //            maxY = minY + Height;
-    //            for (int i = minY; i <= maxY; i++)
-    //            {
-    //                for (int j = minX; j <= maxX; j++)
-    //                {
-    //                    Dungeon[i, j] = 1;
-    //                    Dungeon[minY, j] = 2;
-    //                    Dungeon[maxY, j] = 2;
-    //                }
-    //                Dungeon[i, minX] = 2;
-    //                Dungeon[i, maxX] = 2;
-    //            }
-    //            Dungeon[DoorPos.Y, DoorPos.X + direction.X] = 3;
-    //
-    //        }
-    //    }
-    //}
 }
 
