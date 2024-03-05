@@ -18,6 +18,9 @@ TagManager:
   - MonsterEnemy
   - MonsterHitBox
   - DeadLayer
+  - WallLayer
+  - Obstructors
+  - WaterPostProcessing
   - 
   - 
   - 
@@ -34,11 +37,8 @@ TagManager:
   - 
   - 
   - 
-  - 
-  - 
-  - 
-  - 
-  - 
+  - Reflections
+  - Obstructions
   m_SortingLayers:
   - name: Default
     uniqueID: 0

@@ -17,6 +17,9 @@ TextureImporter:
   - first:
       213: 7114446926784552212
     second: dead right-Sheet_4
+  - first:
+      213: -8202797037402300020
+    second: dead right-Sheet_5
   externalObjects: {}
   serializedVersion: 12
   mipmaps:
@@ -231,6 +234,27 @@ TextureImporter:
       bones: []
       spriteID: 41ddc5439c79bb260800000000000000
       internalID: 7114446926784552212
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dead right-Sheet_5
+      rect:
+        serializedVersion: 2
+        x: 100
+        y: 0
+        width: 20
+        height: 33
+      alignment: 9
+      pivot: {x: 0.5, y: 0.25}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c8162050e8fc92e80800000000000000
+      internalID: -8202797037402300020
       vertices: []
       indices: 
       edges: []

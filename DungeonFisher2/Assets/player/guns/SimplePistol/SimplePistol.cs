@@ -6,6 +6,7 @@ public class SimplePistol : Gun
 {
     public override void Shot()
     {
+        if (player != null) { player.ShakeCamera(0.01f, 0.05f); }
         animator.SetTrigger("Shot");
         Vector3 bulletPos = transform.position;
         Quaternion bulletRot = transform.rotation;

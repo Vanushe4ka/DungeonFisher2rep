@@ -17,6 +17,9 @@ TextureImporter:
   - first:
       213: 1783344671205867498
     second: dead up-Sheet_4
+  - first:
+      213: 4255649212888765948
+    second: dead up-Sheet_5
   externalObjects: {}
   serializedVersion: 12
   mipmaps:
@@ -231,6 +234,27 @@ TextureImporter:
       bones: []
       spriteID: aefbf47a786bfb810800000000000000
       internalID: 1783344671205867498
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dead up-Sheet_5
+      rect:
+        serializedVersion: 2
+        x: 100
+        y: 0
+        width: 20
+        height: 33
+      alignment: 9
+      pivot: {x: 0.5, y: 0.25}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cf5d7e6696a1f0b30800000000000000
+      internalID: 4255649212888765948
       vertices: []
       indices: 
       edges: []

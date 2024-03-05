@@ -2,13 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Player : MonoBehaviour
+public class Player : Person
 {
     // Start is called before the first frame update
-    public Rigidbody2D rigidbody;
-    SpriteRenderer spriteRenderer;
-    Animator animator;
-    public float moveSpeed;
     public float animMoveSpeed;
     Vector2Int rotateDirection = new Vector2Int(0, -1);
     public Transform cameraTransform;
@@ -16,89 +12,58 @@ public class Player : MonoBehaviour
     public Gun[] AllGuns;
     public Gun ActiveGun;
 
-    public int HP;
     public int maxHP;
     public GameObject[] HPImages;
 
-    public bool isDead;
-    private Vector3 originalScale;
-    public int[,] dungeon;
     public LevelManager levelManager;
+    private bool isFellToWater;
 
-    public GameObject ripplesPrefab;
-    private bool isRipplesCreated;
-    void Start()
+    private Vector2Int LastPosition;
+    private IEnumerator currentShakeCoroutine;
+    public override void Start()
     {
-        rigidbody = gameObject.GetComponent<Rigidbody2D>();
-        spriteRenderer = gameObject.GetComponent<SpriteRenderer>();
-        animator = gameObject.GetComponent<Animator>();
-        originalScale = transform.localScale;
+        base.Start();
+        for(int i = 0; i < AllGuns.Length; i++) { AllGuns[i].player = this; }
         DrawHP();
     }
-    public void CalculateLayer()
+    public override void CalculateLayer()
     {
-        spriteRenderer.sortingOrder = 400 - Mathf.RoundToInt(transform.position.y*4);
+        base.CalculateLayer();
         if (ActiveGun != null) { ActiveGun.spriteRenderer.sortingOrder = spriteRenderer.sortingOrder - 1; }
     }
-    public void Damage(int hp)
+    public override void Damage(int hp)
     {
-        HP -= hp;
-        HP = Mathf.Max(HP, 0);
-        StartCoroutine(Blink());
+        base.Damage(hp);
+        ShakeCamera(hp/10f,0.1f);
         DrawHP();
     }
-    public void Dead(Vector3 pushVector, float pushForce)
+    public void ShakeCamera(float magnitude, float duration)
     {
-        Dead();
-        Vector3 direction = (transform.position - pushVector).normalized;
-        rigidbody.AddForce(direction * pushForce, ForceMode2D.Impulse);
-    }
-    public void Dead()
-    {
-        levelManager.PlayerIsDead();
-        isDead = true;
-        animator.SetBool("dead", true);
-        gameObject.layer = 10;
-        StartCoroutine(ChangeColorBlackout());
-    }
-    private IEnumerator ChangeColorBlackout()
-    {
-        float elapsedTime = 0f;
-        float duration = 1;
-        Color originalColor = spriteRenderer.color;
-        originalColor.a = 1;
-        Color targetColor = new Color(originalColor.r - 0.5f, originalColor.g - 0.5f, originalColor.b - 0.5f, originalColor.a);
-        while (elapsedTime < duration)
+        if (currentShakeCoroutine != null)
         {
-            float t = elapsedTime / duration;
-            spriteRenderer.color = Color.Lerp(originalColor, targetColor, t);
-            elapsedTime += Time.deltaTime;
+            StopCoroutine(currentShakeCoroutine);
+        }
+        currentShakeCoroutine = ShakeCoroutine(magnitude, duration);
+        StartCoroutine(currentShakeCoroutine);
+    }
+    private IEnumerator ShakeCoroutine(float magnitude, float duration)
+    {
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            Vector3 randomPoint = cameraTransform.position + Random.insideUnitSphere * magnitude;
+            cameraTransform.localPosition = randomPoint;
+            elapsed += Time.deltaTime;
             yield return null;
         }
-        spriteRenderer.color = targetColor; // ”бедитьс€, что цвет стал точно целевым
+        //transform.localPosition = originalPosition;
     }
-    IEnumerator Blink()
+    public override void Dead()
     {
-        float elapsedTime = 0f;
-        float blinkDuration = 0.15f;
-        while (elapsedTime < blinkDuration)
-        {
-            float t = Mathf.Cos(elapsedTime / blinkDuration * 2 * Mathf.PI); // »нтерпол€ци€ синуса от 0 до PI
-            float alpha = t / 8 + 0.75f; // ќграничение альфа не менее minAlpha
-
-            Color color = spriteRenderer.color;
-            color.a = alpha;
-            spriteRenderer.color = color;
-
-            elapsedTime += 0.02f;
-            yield return new WaitForSeconds(0.02f);
-        }
-
-        // ”становить альфа обратно на 1 в конце анимации
-        Color endColor = spriteRenderer.color;
-        endColor.a = 1f;
-        spriteRenderer.color = endColor;
+        levelManager.PlayerIsDead();
+        base.Dead();
     }
+   
     public void AddMaxHP(int hp)
     {
         maxHP += hp;
@@ -137,10 +102,53 @@ public class Player : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Return)) { AddMaxHP(2); }
     }
     // Update is called once per frame
-    void FixedUpdate()
+    public bool IsCanPlay()
+    {
+        return (!isDead && !isFellToWater);
+    }
+   
+    void  FixedUpdate()
     {
         CalculateLayer();
-        if (!isDead)
+        int dungeonPoint = DetermPointInMatrix();
+        if (dungeonPoint == 0 || dungeonPoint == 2 || dungeonPoint == 5)
+        {
+            if (HP == 1) { Damage(1);Dead(); }
+            else if (!isDead && HP > 1)
+            {
+                isFellToWater = true;
+            }
+            if (!isRipplesCreated)
+            {
+                ripplesObject = Instantiate(ripplesPrefab, transform.position, transform.rotation);
+                isRipplesCreated = true;
+            }
+            else
+            {
+                if (ripplesObject != null) { ripplesObject.transform.position = transform.position; }
+            }
+            rigidbody.velocity *= 0.8f;
+            transform.localScale = Vector3.Lerp(transform.localScale, new Vector3(0, 0, 0), 0.1f);
+            if (isFellToWater && transform.localScale.x < 0.1f)
+            {
+                Debug.Log("StartFindingPoint");
+                gameObject.transform.position = (Vector2)ConvertMatrixCoordinateToPos(LastPosition);
+                Debug.Log("EndFindingPoint");
+                isFellToWater = false;
+                Damage(1);
+            }
+            //if (transform.localScale.x <= 0.25f) { Destroy(gameObject); }
+
+        }
+        else
+        {
+            transform.localScale = originalScale;
+            isRipplesCreated = false;
+            isFellToWater = false;
+            LastPosition = ConvertPosToMatrixCoordinate();
+        }
+
+        if (IsCanPlay())
         {
             cameraTransform.position = Vector3.Lerp(cameraTransform.position, new Vector3(gameObject.transform.position.x, gameObject.transform.position.y, -10), cameraSpeed);
             Vector2 moveDirection = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical")).normalized;
@@ -267,30 +275,7 @@ public class Player : MonoBehaviour
             ActiveGun.transform.localPosition = new Vector3(ActiveGun.startGunPos.x * Mathf.Cos(angle * Mathf.PI / 180), ActiveGun.startGunPos.y * -Mathf.Sin(angle * Mathf.PI / 180), 0);
 
         }
-        else
-        {
-            int dungeonPoint = dungeon[Mathf.RoundToInt(transform.position.y) - 1, Mathf.RoundToInt(transform.position.x) - 1];
-            if (dungeonPoint == 0 || dungeonPoint == 2 || dungeonPoint == 5)
-            {
-                if (!isRipplesCreated)
-                {
-                    ripplesPrefab = Instantiate(ripplesPrefab, transform.position,transform.rotation);
-                    isRipplesCreated = true;
-                }
-                else
-                {
-                    if (ripplesPrefab != null) { ripplesPrefab.transform.position = transform.position; }
-                }
-                rigidbody.velocity *= 0.8f;
-                transform.localScale = Vector3.Lerp(transform.localScale, new Vector3(0, 0, 0), 0.1f);
-                //if (transform.localScale.x <= 0.25f) { Destroy(gameObject); }
-
-            }
-            else
-            {
-                transform.localScale = originalScale;
-            }
-        }
+        
     }
 
 }

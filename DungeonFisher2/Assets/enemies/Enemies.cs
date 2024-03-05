@@ -2,86 +2,65 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Enemies : MonoBehaviour
+public class Enemies : Person
 {
-    public Rigidbody2D rigidbody;
-    public SpriteRenderer spriteRenderer;
-    protected Animator animator;
-    public int HP;
-    public float moveSpeed;
+    
     public Player player;
-    protected List<Vector2Int> Path = new List<Vector2Int>();
+    public List<Vector2Int> Path = new List<Vector2Int>();//временно публичный
     public float atackRadius;
     protected Vector2Int direction;
     public EnemyHitbox hitBox;
-    public int[,] dungeon;
-
-    public bool isDead;
+    
     public float rechargeTime;
     public float rechargeTimer;
+    public LayerMask raycastLayer;
 
-    private Vector2 originalScale;
-    private bool isRipplesCreated;
-    public GameObject ripplesPrefab;
-    void Start()
+    public override void Start()
     {
+        base.Start();
         rechargeTimer = rechargeTime;
-        rigidbody = gameObject.GetComponent<Rigidbody2D>();
-        spriteRenderer = gameObject.GetComponent<SpriteRenderer>();
-        animator = gameObject.GetComponent<Animator>();
-        originalScale = transform.localScale;
+        
     }
     public virtual void FixedUpdate()
     {
-        if (isDead)
+        int dungeonPoint = DetermPointInMatrix(); ;
+        if (dungeonPoint == 0 || dungeonPoint == 2 || dungeonPoint == 5)
         {
-            int dungeonPoint = dungeon[Mathf.RoundToInt(transform.position.y) - 1, Mathf.RoundToInt(transform.position.x) - 1];
-            if (dungeonPoint == 0 || dungeonPoint == 2 || dungeonPoint == 5)
+            if (!isDead)
             {
-                rigidbody.velocity *= 0.8f;
-                transform.localScale = Vector3.Lerp(transform.localScale, new Vector3(0, 0, 0), 0.1f);
-                if (transform.localScale.x <= 0.25f) { Destroy(gameObject); }
-                if (!isRipplesCreated)
-                {
-                    ripplesPrefab = Instantiate(ripplesPrefab, transform.position,transform.rotation);
-                    
-                    
-                    isRipplesCreated = true;
-                }
-                else
-                {
-                    if (ripplesPrefab != null) { ripplesPrefab.transform.position = transform.position; }
-                }
+                HP = 0;
+                Dead();
+            }
+            rigidbody.velocity *= 0.8f;
+            transform.localScale = Vector3.Lerp(transform.localScale, new Vector3(0, 0, 0), 0.1f);
+            if (transform.localScale.x <= 0.25f) { Destroy(gameObject); }
+            if (!isRipplesCreated)
+            {
+                ripplesObject = Instantiate(ripplesPrefab, transform.position, transform.rotation);
+
+
+                isRipplesCreated = true;
             }
             else
             {
-                transform.localScale = originalScale;
+                if (ripplesObject != null) { ripplesObject.transform.position = transform.position; }
+            }
+        }
+        else
+        {
+            transform.localScale = originalScale;
+            isRipplesCreated = false;
+            if (isDead && rigidbody.velocity == Vector2.zero) 
+            { 
+                animator.enabled = false;
+                this.enabled = false;
             }
         }
     }
-    public void Damage(int damage)
-    {
-        HP -= damage;
-        StartCoroutine(Blink());
-        
-    }
-    public virtual void Dead(Vector3 pushVector,float pushForce)
-    {
-        isDead = true;
-        animator.SetBool("dead", true);
-        gameObject.layer = 10;
-        StartCoroutine(ChangeColorBlackout());
-        Vector3 direction = (transform.position - pushVector).normalized;
-        rigidbody.AddForce(direction * pushForce, ForceMode2D.Impulse);
-    }
-    public void CalculateLayer()
-    {
-        spriteRenderer.sortingOrder = 400- Mathf.RoundToInt(transform.position.y*4);
-    }
     
-    protected void DetermDirection()
+    protected void DetermDirection(Vector3 target)
     {
-        Vector2 dir = (player.transform.position - transform.position).normalized;
+        Vector2 dir = (target - transform.position).normalized;
         int x = Mathf.RoundToInt(dir.x);
         int y = Mathf.RoundToInt(dir.y);
         if (Mathf.Abs(x) == Mathf.Abs(y))
@@ -100,19 +79,19 @@ public class Enemies : MonoBehaviour
         direction = new Vector2Int(x, y);
     }
     public virtual void Atack() { }
-    protected void AStar()
-    {
-        Path.Clear();
-        Path.Add(new Vector2Int(Mathf.RoundToInt(player.transform.position.x), Mathf.RoundToInt( player.transform.position.y)));
-        //Debug.Log(Mathf.RoundToInt(player.transform.position.x) + " " + Mathf.RoundToInt(player.transform.position.y));
-    }
+    //protected void AStar()
+    //{
+    //    Path.Clear();
+    //    Path.Add(new Vector2Int(Mathf.RoundToInt(player.transform.position.x), Mathf.RoundToInt( player.transform.position.y)));
+    //    //Debug.Log(Mathf.RoundToInt(player.transform.position.x) + " " + Mathf.RoundToInt(player.transform.position.y));
+    //}
     protected void Move()
     {
-        if (Path.Count == 0) { return; }
+        if (Path == null || Path.Count == 0) { return; }
 
-        Vector2 targetPosition = new Vector2(Path[0].x, Path[0].y); // Первая точка пути
+        Vector2 targetPosition = ConvertMatrixCoordinateToPos(Path[0]); // Первая точка пути
 
-        if (Vector2.Distance(targetPosition, transform.position) < 1)
+        if (Vector2.Distance(targetPosition, transform.position) < 0.5f)
         {
             Path.RemoveAt(0);
         }
@@ -125,44 +104,16 @@ public class Enemies : MonoBehaviour
 
         // Применяем смещение к текущей позиции
         rigidbody.MovePosition(rigidbody.position + movement);
+        DetermDirection(targetPosition);
     }
-    private IEnumerator ChangeColorBlackout()
+    protected void Move(Vector2 to)
     {
-        float elapsedTime = 0f;
-        float duration = 1;
-        Color originalColor = spriteRenderer.color;
-        originalColor.a = 1;
-        Color targetColor = new Color(originalColor.r - 0.5f, originalColor.g - 0.5f, originalColor.b - 0.5f, originalColor.a);
-        while (elapsedTime < duration)
-        {
-            float t = elapsedTime / duration;
-            spriteRenderer.color = Color.Lerp(originalColor, targetColor, t);
-            elapsedTime += Time.deltaTime;
-            yield return null;
-        }
-        spriteRenderer.color = targetColor; // Убедиться, что цвет стал точно целевым
-    }
-    IEnumerator Blink()
-    {
-        float elapsedTime = 0f;
-        float blinkDuration = 0.15f;
-        while (elapsedTime < blinkDuration)
-        {
-            float t = Mathf.Cos(elapsedTime / blinkDuration*2 * Mathf.PI); // Интерполяция синуса от 0 до PI
-            float alpha = t/8 + 0.75f; // Ограничение альфа не менее minAlpha
+        Vector2 direction = (to - (Vector2)rigidbody.position).normalized;
+        Vector2 movement = direction * moveSpeed * Time.deltaTime;
 
-            Color color = spriteRenderer.color;
-            color.a = alpha;
-            spriteRenderer.color = color;
-
-            elapsedTime += 0.02f;
-            yield return new WaitForSeconds(0.02f);
-        }
-        
-        // Установить альфа обратно на 1 в конце анимации
-        Color endColor = spriteRenderer.color;
-        endColor.a = 1f;
-        spriteRenderer.color = endColor;
+        // Применяем смещение к текущей позиции
+        rigidbody.MovePosition(rigidbody.position + movement);
+        DetermDirection(to);
     }
-    
+
 }

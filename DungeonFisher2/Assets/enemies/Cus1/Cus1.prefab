@@ -100,7 +100,7 @@ CircleCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0, y: -0.25}
+  m_Offset: {x: 0, y: 0}
   serializedVersion: 2
   m_Radius: 0.25
 --- !u!50 &8535152288808985192
@@ -161,13 +161,17 @@ MonoBehaviour:
   spriteRenderer: {fileID: 8535152288808985198}
   HP: 10
   moveSpeed: 2
+  isDead: 0
+  ripplesPrefab: {fileID: 7317459000653510441, guid: 981875008a6439848b6a5b6287ccb174, type: 3}
   player: {fileID: 0}
+  Path: []
   atackRadius: 1.5
   hitBox: {fileID: 8535152289507966527}
-  isDead: 0
   rechargeTime: 2
   rechargeTimer: 0
-  ripplesPrefab: {fileID: 7317459000653510441, guid: 981875008a6439848b6a5b6287ccb174, type: 3}
+  raycastLayer:
+    serializedVersion: 2
+    m_Bits: 2048
   pushForce: 15
   attacking: 0
   damageDealt: 1
@@ -198,7 +202,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8535152289507966520}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0.25, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 8535152288808985199}

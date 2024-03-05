@@ -27,7 +27,7 @@ public class Cus1 : Enemies
         CalculateLayer();
         if (rechargeTimer <= 0 && !isDead)
         {
-            DetermDirection();
+            //DetermDirection();
             animator.SetBool("run", true);
             if (direction.x == -1) 
             { 
@@ -41,11 +41,23 @@ public class Cus1 : Enemies
 
             if (Vector2.Distance(player.transform.position, transform.position) > atackRadius)
             {
-                if (Path.Count > 0 && Path[Path.Count-1] == new Vector2Int(Mathf.RoundToInt(player.transform.position.x), Mathf.RoundToInt(player.transform.position.y)))
+                RaycastHit2D hit = Physics2D.Raycast(transform.position, player.transform.position - transform.position, Vector2.Distance(transform.position, player.transform.position), raycastLayer);
+                if (hit.collider != null)// ≈сли луч столкнулс€ с преп€тствием
                 {
-                    Move();
+                    if (Path != null && Path.Count > 0 && Vector2.Distance(Path[Path.Count - 1], player.ConvertPosToMatrixCoordinate()) <= atackRadius)
+                    {
+                        Move();
+                    }
+                    else { Path = AStar.FindPath(ConvertPosToMatrixCoordinate(), player.ConvertPosToMatrixCoordinate(), dungeon, new List<int>() { 1, 3 }); }
+                    Debug.DrawLine(transform.position, hit.point, Color.red); // –исуем линию до точки столкновени€
                 }
-                else { AStar(); }
+                else// ≈сли луч не столкнулс€ с преп€тствием
+                {
+                    Move(player.transform.position);
+                    Debug.DrawLine(transform.position, player.transform.position, Color.green); // –исуем линию от начальной до конечной точки
+                }
+
+                
             }
             else
             {
@@ -60,6 +72,7 @@ public class Cus1 : Enemies
     }
     public override void Atack()
     {
+        DetermDirection(player.transform.position);
         animator.SetTrigger("atack");
         attacking = true;
         Vector3 direction = (player.transform.position - transform.position).normalized;

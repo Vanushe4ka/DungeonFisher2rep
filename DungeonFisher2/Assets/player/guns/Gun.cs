@@ -17,6 +17,7 @@ public class Gun : MonoBehaviour
     public float shotColdownTime = 1;
     public float barrelLong = 1;
     public int spread = 0;
+    public Player player;
 
     private void Start()
     {
