@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Water2D;
 using UnityEngine;
 
 public class Gun : MonoBehaviour
@@ -12,12 +13,15 @@ public class Gun : MonoBehaviour
     public GameObject bullet;
     
     public Vector2Int direction;
-    private float shotClodownTimer;
+    protected float shotClodownTimer;
     
     public float shotColdownTime = 1;
     public float barrelLong = 1;
     public int spread = 0;
     public Player player;
+    public Transform reflectionPivot;
+    public Reflector reflector;
+    public SpriteRenderer reflectionRenderer;
 
     private void Start()
     {
@@ -28,8 +32,15 @@ public class Gun : MonoBehaviour
     }
     public virtual void Update()
     {
+        reflectionPivot.localPosition = new Vector3(transform.localPosition.x, -0.9f - 0.25f - transform.localPosition.y, transform.localPosition.z);
+        reflectionPivot.rotation = Quaternion.Inverse(transform.rotation);
+        if (direction.y != 0) { reflector.raymarched = true; }
+        else { reflector.raymarched = false; }
+        if (spriteRenderer.flipY) { reflectionPivot.transform.localScale = new Vector3(-1, 1, 1); }
+        else { reflectionPivot.transform.localScale = new Vector3(-1, -1, 1); }
+        
+
         if (shotClodownTimer > 0) { shotClodownTimer -= Time.deltaTime; }
-        if (Input.GetKeyDown(KeyCode.Mouse0) && shotClodownTimer <= 0) {Shot();shotClodownTimer = shotColdownTime; }
     }
     public virtual void Shot()
     {

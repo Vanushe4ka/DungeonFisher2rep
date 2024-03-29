@@ -2,53 +2,92 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using Water2D;
 
 
 public class Level1Manager : LevelManager
 {
     Generator generator = new Generator();
-    public Tilemap level;
-    
-    
+    public ModernWater2D water;
+    public Tilemap levelTilemap;
+    public Tilemap wallsTilemap;
+    public Tilemap briegesTilemap;
+    public Tilemap reflectionsTilemap;
     public Player player; 
     List<Generator.Room> AllRooms;
-    public Vector2 bossRoomCenter;//временно публичный
+    
     public Texture2D fullMap;
     public Texture2D openedMap;
     [SerializeField]
-    [Header("Tiles")]
+    [Header("Floor Tiles")]
     Sprite[] CentralTiles;
     [SerializeField]
     float[] CentralWeights;
+    
     [SerializeField]
-    Sprite[] LUCornerTiles;
+    [Header("Wall Tiles")]
+    Sprite LUCornerTile;
     [SerializeField]
-    Sprite[] RUCornerTiles;
+    Sprite RUCornerTile;
     [SerializeField]
-    Sprite[] LDCornerTiles;
+    Sprite LDCornerTile;
     [SerializeField]
-    Sprite[] RDCornerTiles;
+    Sprite RDCornerTile;
     [SerializeField]
-    Sprite[] HorCoridorTiles;
+    Sprite LUConcaveTile;
     [SerializeField]
-    Sprite[] VerCoridorTiles;
+    Sprite RUConcaveTile;
+    [SerializeField]
+    Sprite RDConcaveTile;
+    [SerializeField]
+    Sprite LDConcaveTile;
+    [SerializeField]
+    Sprite LEdgeTile;
+    [SerializeField]
+    Sprite REdgeTile;
+    [SerializeField]
+    Sprite UEdgeTile;
+    [SerializeField]
+    Sprite DEdgeTile;
 
     [SerializeField]
-    Sprite[] LEdgeTiles;
+    [Header("Reflection Tiles")]
+    Sprite CentralReflection;
     [SerializeField]
-    Sprite[] REdgeTiles;
+    Sprite RCornerReflection;
     [SerializeField]
-    Sprite[] UEdgeTiles;
+    Sprite LCornerReflection;
     [SerializeField]
-    Sprite[] DEdgeTiles;
+    Sprite RConvareReflection;
     [SerializeField]
-    Sprite[] RPeninsulaTiles;
+    Sprite LConvareReflection;
     [SerializeField]
-    Sprite[] LPeninsulaTiles;
-    [SerializeField]
-    Sprite[] UPeninsulaTiles;
-    [SerializeField]
-    Sprite[] DPeninsulaTiles;
+    Sprite[] BriegesReflection;
+    struct WallDir
+    {
+        public readonly int r;
+        public readonly int l;
+        public readonly int u;
+        public readonly int d;
+
+        public readonly int ru;
+        public readonly int lu;
+        public readonly int rd;
+        public readonly int ld;
+        public WallDir(int r,int l,int u,int d,int ru, int lu,int rd,int ld)
+        {
+            this.r = r;
+            this.l = l;
+            this.u = u;
+            this.d = d;
+
+            this.ru = ru;
+            this.lu = lu;
+            this.rd = rd;
+            this.ld = ld;
+        }
+    }
+
     [SerializeField]
     [Header("Briedges")]
     Sprite[] HorBriedgeTiles;
@@ -60,7 +99,8 @@ public class Level1Manager : LevelManager
     
     public GameObject tentaclesPrefab;
     public GameObject[] enemiesPrefabs;
-    private List<Vector2Int> pointsWereEnemies = new List<Vector2Int>(); 
+    private int[] enemiesInDungeon = new int[1];//на данный момент типов противников - 1
+    
     void AddTentacles(Generator.Room room)
     {
         for (int y = room.FirstRoomPoint.Y; y <= room.SecondRoomPoint.Y; y++)
@@ -94,20 +134,20 @@ public class Level1Manager : LevelManager
             }
         }
     }
-    Vector2 ChoiseEnemyPoint(Generator.Room room)
+    Vector2Int ChoiseEnemyPoint(Generator.Room room, ref int[,] roomMatrix)
     {
         Vector2Int point;
         do
         {
             point = new Vector2Int(Random.Range(0, room.RoomMatrix.GetLength(1)), Random.Range(0, room.RoomMatrix.GetLength(0)));
         }
-        while (room.RoomMatrix[point.y, point.x] != 1 && !pointsWereEnemies.Contains(point));
-        pointsWereEnemies.Add(point);
-        return point + new Vector2(room.FirstRoomPoint.X + 1, room.FirstRoomPoint.Y+1);
+        while (roomMatrix[point.y, point.x] != 1);
+        roomMatrix[point.y, point.x] = 0;
+        return point + new Vector2Int(room.FirstRoomPoint.X + 1, room.FirstRoomPoint.Y+1);
     }
-    void CreateEnemy(int enemyNumber,Generator.Room room)
+    void CreateEnemy(int enemyNumber,Generator.Room room, ref int[,] roomMatrix)
     {
-        enemies.Add(Instantiate(enemiesPrefabs[enemyNumber], ChoiseEnemyPoint(room), Quaternion.identity));
+        enemies.Add(Instantiate(enemiesPrefabs[enemyNumber], (Vector2)ChoiseEnemyPoint(room,ref roomMatrix), Quaternion.identity));
         Enemies enemyScript = enemies[enemies.Count - 1].GetComponent<Enemies>();
         enemyScript.player = player;
         enemyScript.dungeon = dungeonMatrix;
@@ -128,8 +168,7 @@ public class Level1Manager : LevelManager
                 if (playerPosInRoom.x >= 0 && playerPosInRoom.y >= 0 && playerPosInRoom.x < room.RoomMatrix.GetLength(1) && playerPosInRoom.y < room.RoomMatrix.GetLength(0)&&
                      room.RoomMatrix[playerPosInRoom.y,playerPosInRoom.x] == 1)
                 {
-                    
-                    
+                    int[,] roomMatrix = (int[,])room.RoomMatrix.Clone();
                     room.isVisited = true;
                     for (int i = 0; i < room.EnemiesQuantity.Length; i++)
                     {
@@ -142,10 +181,9 @@ public class Level1Manager : LevelManager
                                 AddTentacles(room);
                             }
 
-                            CreateEnemy(i, room);
+                            CreateEnemy(i, room,ref roomMatrix);
                         }
                     }
-                    pointsWereEnemies.Clear();
 
                     for (int i = 0; i < room.RoomMatrix.GetLength(0); i++)
                     {
@@ -189,8 +227,8 @@ public class Level1Manager : LevelManager
     }
     private void MapHandler()
     {
-        mapImage.uvRect = new Rect(new Vector2(((player.transform.position.x - 0.5f) / Generator.DUNGEON_SIZE) - (mapImage.uvRect.width/2), ((player.transform.position.y - 0.5f) / Generator.DUNGEON_SIZE) - (mapImage.uvRect.height / 2)), mapImage.uvRect.size);
-        bossMarkMap.localPosition = ((bossRoomCenter / Generator.DUNGEON_SIZE) -mapImage.uvRect.position)  * (mapImage.rectTransform.rect.size *2);
+        mapImage.uvRect = new Rect(new Vector2(((player.transform.position.x - 0.5f) / Generator.DUNGEON_SIDE_SIZE) - (mapImage.uvRect.width/2), ((player.transform.position.y - 0.5f) / Generator.DUNGEON_SIDE_SIZE) - (mapImage.uvRect.height / 2)), mapImage.uvRect.size);
+        bossMarkMap.localPosition = ((bossRoomCenter / Generator.DUNGEON_SIDE_SIZE) -mapImage.uvRect.position)  * (mapImage.rectTransform.rect.size *2);
     }
     private void FixedUpdate()
     {
@@ -217,16 +255,42 @@ public class Level1Manager : LevelManager
     }
     void DistributionEnemies()
     {
-        foreach (Generator.Room room in generator.AllRooms)
+        for (int i = 0; i < enemiesInDungeon.Length; i++)
         {
-            if (room is Generator.StartRoom == false) { room.EnemiesQuantity = new int[] { 2 }; }
+            for (int e = 0; e < enemiesInDungeon[i]; e++)
+            {
+                Generator.Room randRoom = ChoiseRandomRoom(AllRooms);
+                if (randRoom == null) { e -= 1; }
+                else { randRoom.EnemiesQuantity[i] += 1; }
+            }
         }
+    }
+    void WaterSetting()
+    {
+        Vector2[] waterSpeeds = new Vector2[]
+        {
+            new Vector2 (0.05f,0.025f),
+            new Vector2 (0.25f,0.05f),
+            new Vector2 (-0.25f,-0.05f),
+            new Vector2 (-0.05f,-0.025f),
+            new Vector2 (-0.05f,-0.05f),
+            new Vector2 (0.05f,0.05f),
+            new Vector2 (-0.05f,0.05f),
+            new Vector2 (0.05f,-0.05f),
+        };
+        int num = Random.Range(0, waterSpeeds.Length);
+        Vector2 waterSpeed = waterSpeeds[num];
+        water.settings._waterSettings.distortionSpeed = new WaterCryo<Vector2>(waterSpeed);
+        water.settings._waterSettings.foamSpeed = new WaterCryo<Vector2>(waterSpeed);
     }
     void Start()
     {
-        
-        
+        enemiesInDungeon = new int[] { 40 };//////////////////это пока не добавили механику рыбалки
+        WaterSetting();
+
         (int[,] dungeon, List<Generator.Room> allRooms) = generator.Generate();
+        dungeonMatrix = dungeon;
+        AllRooms = allRooms;
         for (int i = 0; i < allRooms.Count; i++)
         {
             if (allRooms[i] is Generator.BossRoom) { bossRoomCenter = new Vector2((allRooms[i].FirstRoomPoint.X + allRooms[i].SecondRoomPoint.X)/2+1, (allRooms[i].FirstRoomPoint.Y + allRooms[i].SecondRoomPoint.Y) / 2+1); }
@@ -252,90 +316,114 @@ public class Level1Manager : LevelManager
         }
         fullMap.Apply();
         openedDungeonMatrix = new int[dungeon.GetLength(0), dungeon.GetLength(1)];
-        dungeonMatrix = dungeon;
-        AllRooms = allRooms;
-
+       
         Tile newTile = ScriptableObject.CreateInstance<Tile>();
+        //newTile.colliderType = Tile.ColliderType.Grid;
         for (int i = 1; i < dungeon.GetLength(0)-1; i++)
         {
             for (int j = 1; j < dungeon.GetLength(1)-1; j++)
             {
                 int x = j;
                 int y = i;
-                if (dungeon[i,j] == 1)
+                switch (dungeon[i, j])
                 {
-                    Vector4 tilesAround = new Vector4(dungeon[i + 1, j], dungeon[i - 1, j], dungeon[i, j + 1], dungeon[i, j - 1]);//RLUD
-                    switch (tilesAround)
-                    {
-                        case Vector4 v when v.x == 1 && v.y == 1 && v.z == 1 && v.w == 1:
-                            newTile.sprite = ChooseRandomTile(CentralTiles, CentralWeights);//Center
-                            break;
-                        case Vector4 v when v.x != 1 && v.y == 1 && v.z == 1 && v.w != 1:
-                            newTile.sprite = LUCornerTiles[Random.Range(0, LUCornerTiles.Length)];//LU
-                            break;
-                        case Vector4 v when v.x != 1 && v.y == 1 && v.z != 1 && v.w == 1:
-                            newTile.sprite = RUCornerTiles[Random.Range(0, RUCornerTiles.Length)];//RU
-                            break;
-                        case Vector4 v when v.x == 1 && v.y != 1 && v.z == 1 && v.w != 1:
-                            newTile.sprite = LDCornerTiles[Random.Range(0, LDCornerTiles.Length)];//LD
-                            break;
-                        case Vector4 v when v.x == 1 && v.y != 1 && v.z != 1 && v.w == 1:
-                            newTile.sprite = RDCornerTiles[Random.Range(0, RDCornerTiles.Length)];//RD
-                            break;
-                        case Vector4 v when v.x != 1 && v.y != 1 && v.z == 1 && v.w == 1:
-                            newTile.sprite = HorCoridorTiles[Random.Range(0, HorCoridorTiles.Length)];//hor
-                            break;
-                        case Vector4 v when v.x == 1 && v.y == 1 && v.z != 1 && v.w != 1:
-                            newTile.sprite = VerCoridorTiles[Random.Range(0, VerCoridorTiles.Length)];//ver
-                            break;
-                        case Vector4 v when v.x == 1 && v.y == 1 && v.z == 1 && v.w != 1:
-                            newTile.sprite = LEdgeTiles[Random.Range(0, LEdgeTiles.Length)];//L edge
-                            break;
-                        case Vector4 v when v.x == 1 && v.y == 1 && v.z != 1 && v.w == 1:
-                            newTile.sprite = REdgeTiles[Random.Range(0, REdgeTiles.Length)];//R edge
-                            break;
-                        case Vector4 v when v.x != 1 && v.y == 1 && v.z == 1 && v.w == 1:
-                            newTile.sprite = UEdgeTiles[Random.Range(0, UEdgeTiles.Length)];//U edge
-                            break;
-                        case Vector4 v when v.x == 1 && v.y != 1 && v.z == 1 && v.w == 1:
-                            newTile.sprite = DEdgeTiles[Random.Range(0, DEdgeTiles.Length)];//D edge
-                            break;
-                        case Vector4 v when v.x != 1 && v.y != 1 && v.z == 1 && v.w != 1:
-                            newTile.sprite = LPeninsulaTiles[Random.Range(0, LPeninsulaTiles.Length)];//L peninsula
-                            break;
-                        case Vector4 v when v.x != 1 && v.y != 1 && v.z == 1 && v.w == 1:
-                            newTile.sprite = RPeninsulaTiles[Random.Range(0, RPeninsulaTiles.Length)];//R peninsula
-                            break;
-                        case Vector4 v when v.x != 1 && v.y == 1 && v.z != 1 && v.w != 1:
-                            newTile.sprite = UPeninsulaTiles[Random.Range(0, UPeninsulaTiles.Length)];//U peninsula
-                            break;
-                        case Vector4 v when v.x == 1 && v.y != 1 && v.z != 1 && v.w != 1:
-                            newTile.sprite = DPeninsulaTiles[Random.Range(0, DPeninsulaTiles.Length)];//D peninsula
-                            break;
-                    }
-                    level.SetTile(new Vector3Int(x, y, 0), newTile);
-                }
-                if (dungeon[i, j] == 3)
-                {
-                    if (dungeon[y,x+1] == 3)
-                    {
-                        newTile.sprite = ChooseRandomTile(HorBriedgeTiles, BridgesWeights);
-                        level.SetTile(new Vector3Int(x, y, 1), newTile);
-                    }
-                    if (dungeon[y+1, x] == 3)
-                    {
-                        newTile.sprite = ChooseRandomTile(VerBriedgeTiles, BridgesWeights);
-                        level.SetTile(new Vector3Int(x, y, 1), newTile);
-                    }
-                    
-                    //level.SetTile(new Vector3Int(i, j, 0), tiles[1]);
+                    case 1:
+                        newTile.sprite = ChooseRandomTile(CentralTiles, CentralWeights);//Center
+                        levelTilemap.SetTile(new Vector3Int(x, y, 0), newTile);
+                        break;
+                    case 2:
+                        WallDir tilesAround = new WallDir(dungeon[i, j + 1], dungeon[i, j - 1], dungeon[i + 1, j], dungeon[i - 1, j],
+                            dungeon[i+1,j+1], dungeon[i + 1, j - 1], dungeon[i - 1, j + 1], dungeon[i - 1, j - 1]);//RLUD
+                        switch (tilesAround)
+                        {
+                            case WallDir v when v.r == 1 && (v.u == 2 || v.u == 3) && (v.d == 2 || v.d == 3)://LeftEdge
+                                newTile.sprite = LEdgeTile;
+                                wallsTilemap.SetTile(new Vector3Int(x, y, 0), newTile);
+                                break;
+                            case WallDir v when v.l == 1 && (v.u == 2 || v.u == 3) && (v.d == 2 || v.d == 3)://RightEdge
+                                newTile.sprite = REdgeTile;
+                                wallsTilemap.SetTile(new Vector3Int(x, y, 0), newTile);
+                                break;
+                            case WallDir v when (v.r == 2 || v.r == 3) && (v.l == 2 || v.l == 3) && v.d == 1 ://UpEdge
+                                newTile.sprite = UEdgeTile;
+                                wallsTilemap.SetTile(new Vector3Int(x, y, 0), newTile);
+                                break;
+                            case WallDir v when (v.r == 2 || v.r == 3) && (v.l == 2 || v.l == 3) && v.u == 1://DownEdge
+                                newTile.sprite = DEdgeTile;
+                                wallsTilemap.SetTile(new Vector3Int(x, y, 0), newTile);
+                                newTile.sprite = CentralReflection;
+                                reflectionsTilemap.SetTile(new Vector3Int(x, y, 0), newTile);
+                                break;
+                        
+                            case WallDir v when (v.l == 2 || v.l == 3) && (v.d == 2 || v.d == 3) && v.ld == 1://RUCorner
+                                newTile.sprite = RUCornerTile;
+                                wallsTilemap.SetTile(new Vector3Int(x, y, 0), newTile);
+                                break;
+                            case WallDir v when (v.l == 2 || v.l == 3) && (v.u == 2 || v.u == 3) && v.lu == 1://RDCorner
+                                newTile.sprite = RDCornerTile;
+                                wallsTilemap.SetTile(new Vector3Int(x, y, 0), newTile);
+                                newTile.sprite = RCornerReflection;
+                                reflectionsTilemap.SetTile(new Vector3Int(x, y, 0), newTile);
+                                break;
+                            case WallDir v when (v.r == 2 || v.r == 3) && (v.d == 2 || v.d == 3) && v.rd == 1://LUCorner
+                                newTile.sprite = LUCornerTile;
+                                wallsTilemap.SetTile(new Vector3Int(x, y, 0), newTile);
+                                break;
+                            case WallDir v when (v.r == 2 || v.r == 3) && (v.u == 2 || v.u == 3) && v.ru == 1://LDCorner
+                                newTile.sprite = LDCornerTile;
+                                wallsTilemap.SetTile(new Vector3Int(x, y, 0), newTile);
+                                newTile.sprite = LCornerReflection;
+                                reflectionsTilemap.SetTile(new Vector3Int(x, y, 0), newTile);
+                                break;
+                        
+                            case WallDir v when v.l == 1 && v.d == 1 && v.ld == 1://RUConcave
+                                newTile.sprite = RUConcaveTile;
+                                wallsTilemap.SetTile(new Vector3Int(x, y, 0), newTile);
+                                break;
+                            case WallDir v when v.l == 1 && v.u == 1 && v.lu == 1://RDConcave
+                                newTile.sprite = RDConcaveTile;
+                                wallsTilemap.SetTile(new Vector3Int(x, y, 0), newTile);
+                                newTile.sprite = RConvareReflection;
+                                reflectionsTilemap.SetTile(new Vector3Int(x, y, 0), newTile);
+                                break;
+                            case WallDir v when v.r == 1 && v.d == 1 && v.rd == 1://LUConcave
+                                newTile.sprite = LUConcaveTile;
+                                wallsTilemap.SetTile(new Vector3Int(x, y, 0), newTile);
+                                break;
+                            case WallDir v when v.r == 1 && v.u == 1 && v.ru == 1://LDConcave
+                                newTile.sprite = LDConcaveTile;
+                                wallsTilemap.SetTile(new Vector3Int(x, y, 0), newTile);
+                                newTile.sprite = LConvareReflection;
+                                reflectionsTilemap.SetTile(new Vector3Int(x, y, 0), newTile);
+                                break;
+                        }
+                        break;
+                    case 3:
+                        if (dungeon[y, x + 1] == 3)
+                        {
+                            newTile.sprite = ChooseRandomTile(HorBriedgeTiles, BridgesWeights,out int num);
+                            levelTilemap.SetTile(new Vector3Int(x, y, 1), newTile);
+                            briegesTilemap.SetTile(new Vector3Int(x, y, 1), newTile);
+                            if (num < BriegesReflection.Length)
+                            {
+                                newTile.sprite = BriegesReflection[num];
+                                reflectionsTilemap.SetTile(new Vector3Int(x, y, 1), newTile);
+                            }
+                        }
+                        if (dungeon[y + 1, x] == 3)
+                        {
+                            newTile.sprite = ChooseRandomTile(VerBriedgeTiles, BridgesWeights);
+                            levelTilemap.SetTile(new Vector3Int(x, y, 1), newTile);
+                            briegesTilemap.SetTile(new Vector3Int(x, y, 1), newTile);
+                        }
+                        break;
                 }
             }
         }
 
     }
 
-    Sprite ChooseRandomTile(Sprite[] sprites, float[] weights)
+    Sprite  ChooseRandomTile(Sprite[] sprites, float[] weights)
     {
         float totalWeight = 0f;
         foreach (float weight in weights)
@@ -354,5 +442,49 @@ public class Level1Manager : LevelManager
             }
         }
         return sprites[sprites.Length - 1];
+    }
+    Sprite ChooseRandomTile(Sprite[] sprites, float[] weights, out int num)
+    {
+        float totalWeight = 0f;
+        foreach (float weight in weights)
+        {
+            totalWeight += weight;
+        }
+        float randomValue = Random.Range(0f, totalWeight);// Генерируем случайное число от 0 до суммы весов
+
+        float cumulativeWeight = 0f;
+        for (int i = 0; i < sprites.Length; i++)
+        {
+            cumulativeWeight += weights[i];
+            if (randomValue <= cumulativeWeight)
+            {
+                num = i;
+                return sprites[i];
+            }
+        }
+        num = sprites.Length - 1;
+        return sprites[sprites.Length - 1];
+    }
+    Generator.Room ChoiseRandomRoom(List<Generator.Room> rooms)
+    {
+        float totalWeight = 0f;
+        for (int i = 1; i < rooms.Count; i++)
+        {
+            if (rooms[i] is Generator.BossRoom) { continue; }
+            totalWeight += rooms[i].roomSize;
+        }
+        float randomValue = Random.Range(0f, totalWeight);// Генерируем случайное число от 0 до суммы весов
+
+        float cumulativeWeight = 0f;
+        for (int i = 1; i < rooms.Count; i++)
+        {
+            if (rooms[i] is Generator.BossRoom) { continue; }
+            cumulativeWeight += rooms[i].roomSize;
+            if (randomValue <= cumulativeWeight)
+            {
+                return rooms[i];
+            }
+        }
+        return null;
     }
 }

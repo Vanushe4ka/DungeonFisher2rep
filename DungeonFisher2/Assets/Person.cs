@@ -16,6 +16,8 @@ public class Person : MonoBehaviour
     protected bool isRipplesCreated;
     public GameObject ripplesPrefab;
     protected GameObject ripplesObject;
+
+    public SpriteRenderer reflectionRenderer;
     public virtual void Start()
     {
         rigidbody = gameObject.GetComponent<Rigidbody2D>();
@@ -61,6 +63,7 @@ public class Person : MonoBehaviour
     public virtual void CalculateLayer()
     {
         spriteRenderer.sortingOrder = 400 - Mathf.RoundToInt(transform.position.y * 4);
+        if (reflectionRenderer != null) { reflectionRenderer.sortingOrder = spriteRenderer.sortingOrder; }
     }
     protected IEnumerator ChangeColorBlackout()
     {
@@ -73,6 +76,7 @@ public class Person : MonoBehaviour
         {
             float t = elapsedTime / duration;
             spriteRenderer.color = Color.Lerp(originalColor, targetColor, t);
+            if (reflectionRenderer != null) { reflectionRenderer.color = spriteRenderer.color; }
             elapsedTime += Time.deltaTime;
             yield return null;
         }

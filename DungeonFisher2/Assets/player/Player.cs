@@ -29,7 +29,7 @@ public class Player : Person
     public override void CalculateLayer()
     {
         base.CalculateLayer();
-        if (ActiveGun != null) { ActiveGun.spriteRenderer.sortingOrder = spriteRenderer.sortingOrder - 1; }
+        
     }
     public override void Damage(int hp)
     {
@@ -151,10 +151,10 @@ public class Player : Person
         if (IsCanPlay())
         {
             cameraTransform.position = Vector3.Lerp(cameraTransform.position, new Vector3(gameObject.transform.position.x, gameObject.transform.position.y, -10), cameraSpeed);
-            Vector2 moveDirection = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical")).normalized;
+            Vector2 moveDirection = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical")).normalized;
             if (moveDirection.x != 0 || moveDirection.y != 0)
             {
-                rigidbody.MovePosition(rigidbody.position + moveDirection * moveSpeed);
+                transform.Translate(moveDirection * moveSpeed * Time.deltaTime);
                 animator.SetBool("run", true);
                 if ((moveDirection.x != 0 && rotateDirection.x != 0 && moveDirection.x != rotateDirection.x) || (moveDirection.y != 0 && rotateDirection.y != 0 && moveDirection.y != rotateDirection.y))
                 {
@@ -197,7 +197,11 @@ public class Player : Person
                     }
                     ActiveGun.animator.SetBool("isDownDirection", true);
                 }
-                
+                if (ActiveGun != null)
+                {
+                    ActiveGun.spriteRenderer.sortingOrder = spriteRenderer.sortingOrder - 1;
+                    if (ActiveGun.reflectionRenderer != null) { ActiveGun.reflectionRenderer.sortingOrder = ActiveGun.spriteRenderer.sortingOrder; }
+                }
                 Quaternion rotation = Quaternion.AngleAxis(angle + 90, Vector3.forward);
                 ActiveGun.transform.rotation = Quaternion.Slerp(ActiveGun.transform.rotation, rotation, ActiveGun.rotationSpeed * Time.deltaTime);
 
@@ -220,7 +224,12 @@ public class Player : Person
                     ActiveGun.animator.SetBool("isDownDirection", false);
                 }
 
-                ActiveGun.spriteRenderer.sortingOrder = spriteRenderer.sortingOrder + 1;
+                if (ActiveGun != null)
+                {
+                    ActiveGun.spriteRenderer.sortingOrder = spriteRenderer.sortingOrder + 1;
+                    if (ActiveGun.reflectionRenderer != null) { ActiveGun.reflectionRenderer.sortingOrder = ActiveGun.spriteRenderer.sortingOrder; }
+                }
+
                 Quaternion rotation = Quaternion.AngleAxis(angle, Vector3.forward);
                 ActiveGun.transform.rotation = Quaternion.Slerp(ActiveGun.transform.rotation, rotation, ActiveGun.rotationSpeed * Time.deltaTime);
 
@@ -242,7 +251,11 @@ public class Player : Person
                     }
                     ActiveGun.animator.SetBool("isDownDirection", true);
                 }
-                ActiveGun.spriteRenderer.sortingOrder = spriteRenderer.sortingOrder + 1;
+                if (ActiveGun != null)
+                {
+                    ActiveGun.spriteRenderer.sortingOrder = spriteRenderer.sortingOrder + 1;
+                    if (ActiveGun.reflectionRenderer != null) { ActiveGun.reflectionRenderer.sortingOrder = ActiveGun.spriteRenderer.sortingOrder; }
+                }
                 Quaternion rotation = Quaternion.AngleAxis(angle + 90, Vector3.forward);
                 ActiveGun.transform.rotation = Quaternion.Slerp(ActiveGun.transform.rotation, rotation, ActiveGun.rotationSpeed * Time.deltaTime);
 
@@ -264,7 +277,11 @@ public class Player : Person
                     }
                     ActiveGun.animator.SetBool("isDownDirection", false);
                 }
-                ActiveGun.spriteRenderer.sortingOrder = spriteRenderer.sortingOrder - 1;
+                if (ActiveGun != null)
+                {
+                    ActiveGun.spriteRenderer.sortingOrder = spriteRenderer.sortingOrder - 1;
+                    if (ActiveGun.reflectionRenderer != null) { ActiveGun.reflectionRenderer.sortingOrder = ActiveGun.spriteRenderer.sortingOrder; }
+                }
                 Quaternion rotation = Quaternion.AngleAxis(angle, Vector3.forward);
                 ActiveGun.transform.rotation = Quaternion.Slerp(ActiveGun.transform.rotation, rotation, ActiveGun.rotationSpeed * Time.deltaTime);
 

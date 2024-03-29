@@ -12,9 +12,9 @@ public class LevelManager : MonoBehaviour
     public RawImage mapImage;
     public RectTransform playerMarkMap;
     public RectTransform bossMarkMap;
-
+    protected Vector2 bossRoomCenter;
     protected int[,] dungeonMatrix;
-    public int[,] openedDungeonMatrix = new int[Generator.DUNGEON_SIZE, Generator.DUNGEON_SIZE];
+    public int[,] openedDungeonMatrix = new int[Generator.DUNGEON_SIDE_SIZE, Generator.DUNGEON_SIDE_SIZE];
     public void PlayerIsDead()
     {
         for (int i = 0; i < enemies.Count; i++)

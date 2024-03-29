@@ -5,7 +5,7 @@ using UnityEngine;
 using Random = System.Random;
 public class Generator
 {
-    public const int DUNGEON_SIZE = 100;
+    public const int DUNGEON_SIDE_SIZE = 100;
     const int MIN_WALL_SIZE = 6;
     const int MAX_WALL_SIZE = 15;
     //const int MinRoomsQuantity = 6;
@@ -119,13 +119,51 @@ public class Generator
             {
                 for (int j = FirstRoomPoint.X; j <= SecondRoomPoint.X; j++)
                 {
-                    if (Dungeon[i, j] == 0) { thisDungeonSize -= 1; continue; }
+                    if (Dungeon[i, j] == 0) { thisDungeonSize -= 1; roomSize -= 1; continue; }
                     if (Dungeon[i, j] == 1)
                     {
-                        if (i + 1 < DUNGEON_SIZE && Dungeon[i + 1, j] == 0) { Dungeon[i + 1, j] = 2; }
-                        if (i - 1 >= 0 && Dungeon[i - 1, j] == 0) { Dungeon[i - 1, j] = 2; }
-                        if (j + 1 < DUNGEON_SIZE && Dungeon[i, j + 1] == 0) { Dungeon[i, j + 1] = 2; }
-                        if (j - 1 >= 0 && Dungeon[i, j - 1] == 0) { Dungeon[i, j - 1] = 2; }
+                        if (i + 1 < DUNGEON_SIDE_SIZE ) 
+                        { 
+                            if (Dungeon[i + 1, j] == 0) { Dungeon[i + 1, j] = 2; }
+                        }
+                        else { Dungeon[i, j] = 2; }
+
+                        if (i - 1 >= 0) 
+                        {
+                            if (Dungeon[i - 1, j] == 0){Dungeon[i - 1, j] = 2;}
+                        }
+                        else { Dungeon[i, j] = 2; }
+                        if (j + 1 < DUNGEON_SIDE_SIZE) 
+                        { 
+                            if (Dungeon[i, j + 1] == 0) { Dungeon[i, j + 1] = 2; } 
+                        }
+                        else { Dungeon[i, j] = 2; }
+                        if (j - 1 >= 0) 
+                        {
+                            if (Dungeon[i, j - 1] == 0){ Dungeon[i, j - 1] = 2; }
+                        }
+                        else { Dungeon[i, j] = 2; }
+
+                        if (i + 1 < DUNGEON_SIDE_SIZE && j + 1 < DUNGEON_SIDE_SIZE) 
+                        {
+                            if (Dungeon[i + 1, j + 1] == 0) { Dungeon[i + 1, j + 1] = 2; }
+                        }
+                        else { Dungeon[i, j] = 2; }
+                        if (i -1 >= 0 && j + 1 < DUNGEON_SIDE_SIZE) 
+                        {
+                            if (Dungeon[i - 1, j + 1] == 0) { Dungeon[i - 1, j + 1] = 2; }
+                        }
+                        else { Dungeon[i, j] = 2; }
+                        if (i + 1 < DUNGEON_SIDE_SIZE && j -1 >= 0) 
+                        {
+                            if (Dungeon[i + 1, j - 1] == 0) { Dungeon[i + 1, j - 1] = 2; }
+                        }
+                        else { Dungeon[i, j] = 2; }
+                        if (i -1 >= 0 && j -1>=0) 
+                        {
+                            if (Dungeon[i - 1, j - 1] == 0) { Dungeon[i - 1, j - 1] = 2; }
+                        }
+                        else { Dungeon[i, j] = 2; }
                     }
 
                 }
@@ -194,7 +232,7 @@ public class Generator
             else if (EnteranceDoor.X == 0 && EnteranceDoor.Y == -1) { if (randomVariations == 0) { LD = true; } else { RD = true; } }
 
             thisDungeonSize -= (((SecondRoomPoint.Y - FirstRoomPoint.Y) / 2)) * ((SecondRoomPoint.X - FirstRoomPoint.X) / 2);
-
+            roomSize -= (((SecondRoomPoint.Y - FirstRoomPoint.Y) / 2)) * ((SecondRoomPoint.X - FirstRoomPoint.X) / 2);
             if (LU)
             {
                 for (int i = FirstRoomPoint.Y; i <= SecondRoomPoint.Y - ((SecondRoomPoint.Y - FirstRoomPoint.Y) / 2); i++)
@@ -259,9 +297,9 @@ public class Generator
                 {
                     if (Dungeon[i, j] == 2)
                     {
-                        if (i + 1 < DUNGEON_SIZE && i - 1 >= 0 && Dungeon[i + 1, j] == 2 && Dungeon[i - 1, j] == 2 && i + 2 < DUNGEON_SIZE && i - 2 >= 0 && Dungeon[i + 2, j] == 2 && Dungeon[i - 2, j] == 2)
+                        if (i + 1 < DUNGEON_SIDE_SIZE && i - 1 >= 0 && Dungeon[i + 1, j] == 2 && Dungeon[i - 1, j] == 2 && i + 2 < DUNGEON_SIDE_SIZE && i - 2 >= 0 && Dungeon[i + 2, j] == 2 && Dungeon[i - 2, j] == 2)
                         {
-                            if (j + 1 < DUNGEON_SIZE && Dungeon[i, j + 1] == 1)
+                            if (j + 1 < DUNGEON_SIDE_SIZE && Dungeon[i, j + 1] == 1)
                             {
                                 DirDoorPos.Add((new Point(-1, 0), new Point(j, i)));
                                 continue;
@@ -272,9 +310,9 @@ public class Generator
                                 continue;
                             }
                         }
-                        if (j + 1 < DUNGEON_SIZE && j - 1 >= 0 && Dungeon[i, j + 1] == 2 && Dungeon[i, j - 1] == 2 && j + 2 < DUNGEON_SIZE && j - 2 >= 0 && Dungeon[i, j + 2] == 2 && Dungeon[i, j - 2] == 2)
+                        if (j + 1 < DUNGEON_SIDE_SIZE && j - 1 >= 0 && Dungeon[i, j + 1] == 2 && Dungeon[i, j - 1] == 2 && j + 2 < DUNGEON_SIDE_SIZE && j - 2 >= 0 && Dungeon[i, j + 2] == 2 && Dungeon[i, j - 2] == 2)
                         {
-                            if (i + 1 < DUNGEON_SIZE && Dungeon[i + 1, j] == 1)
+                            if (i + 1 < DUNGEON_SIDE_SIZE && Dungeon[i + 1, j] == 1)
                             {
                                 DirDoorPos.Add((new Point(0, -1), new Point(j, i)));
                                 continue;
@@ -320,6 +358,7 @@ public class Generator
             int xDellThickness = Random.Next(1, Math.Max(1, (int)Math.Round((double)((SecondRoomPoint.X - FirstRoomPoint.X) / 2 - 1))));
             int yDellThickness = Random.Next(1, Math.Max(1, (int)Math.Round((double)((SecondRoomPoint.Y - FirstRoomPoint.Y) / 2 - 1))));
             thisDungeonSize -= xDellThickness * yDellThickness * 4;
+            roomSize-= xDellThickness * yDellThickness * 4;
             for (int i = FirstRoomPoint.Y; i <= FirstRoomPoint.Y + yDellThickness; i++)
             {
                 for (int j = FirstRoomPoint.X; j <= FirstRoomPoint.X + xDellThickness; j++)
@@ -430,13 +469,51 @@ public class Generator
             {
                 for (int j = FirstRoomPoint.X; j <= SecondRoomPoint.X; j++)
                 {
-                    if (Dungeon[i, j] == 0) { thisDungeonSize -= 1; continue; }
+                    if (Dungeon[i, j] == 0) { thisDungeonSize -= 1; roomSize -= 1; continue; }
                     if (Dungeon[i, j] == 1)
                     {
-                        if (i + 1 < DUNGEON_SIZE && Dungeon[i + 1, j] == 0) { Dungeon[i + 1, j] = 2; }
-                        if (i - 1 >= 0 && Dungeon[i - 1, j] == 0) { Dungeon[i - 1, j] = 2; }
-                        if (j + 1 < DUNGEON_SIZE && Dungeon[i, j + 1] == 0) { Dungeon[i, j + 1] = 2; }
-                        if (j - 1 >= 0 && Dungeon[i, j - 1] == 0) { Dungeon[i, j - 1] = 2; }
+                        if (i + 1 < DUNGEON_SIDE_SIZE)
+                        {
+                            if (Dungeon[i + 1, j] == 0) { Dungeon[i + 1, j] = 2; }
+                        }
+                        else { Dungeon[i, j] = 2; }
+
+                        if (i - 1 >= 0)
+                        {
+                            if (Dungeon[i - 1, j] == 0) { Dungeon[i - 1, j] = 2; }
+                        }
+                        else { Dungeon[i, j] = 2; }
+                        if (j + 1 < DUNGEON_SIDE_SIZE)
+                        {
+                            if (Dungeon[i, j + 1] == 0) { Dungeon[i, j + 1] = 2; }
+                        }
+                        else { Dungeon[i, j] = 2; }
+                        if (j - 1 >= 0)
+                        {
+                            if (Dungeon[i, j - 1] == 0) { Dungeon[i, j - 1] = 2; }
+                        }
+                        else { Dungeon[i, j] = 2; }
+
+                        if (i + 1 < DUNGEON_SIDE_SIZE && j + 1 < DUNGEON_SIDE_SIZE)
+                        {
+                            if (Dungeon[i + 1, j + 1] == 0) { Dungeon[i + 1, j + 1] = 2; }
+                        }
+                        else { Dungeon[i, j] = 2; }
+                        if (i - 1 >= 0 && j + 1 < DUNGEON_SIDE_SIZE)
+                        {
+                            if (Dungeon[i - 1, j + 1] == 0) { Dungeon[i - 1, j + 1] = 2; }
+                        }
+                        else { Dungeon[i, j] = 2; }
+                        if (i + 1 < DUNGEON_SIDE_SIZE && j - 1 >= 0)
+                        {
+                            if (Dungeon[i + 1, j - 1] == 0) { Dungeon[i + 1, j - 1] = 2; }
+                        }
+                        else { Dungeon[i, j] = 2; }
+                        if (i - 1 >= 0 && j - 1 >= 0)
+                        {
+                            if (Dungeon[i - 1, j - 1] == 0) { Dungeon[i - 1, j - 1] = 2; }
+                        }
+                        else { Dungeon[i, j] = 2; }
                     }
 
                 }
@@ -465,6 +542,7 @@ public class Generator
         protected int[,] Dungeon;
         public int[,] RoomMatrix;
         protected List<Room> AllRooms;
+        public int roomSize;
         public Room(Point? entranceDoor, Point firstRoomPoint, Point secondRoomPoint, int[,] dungeon, List<Room> allRooms, Random random)
         {
             
@@ -478,6 +556,7 @@ public class Generator
             AllRooms = allRooms;
             Random = random;
             thisDungeonSize += (SecondRoomPoint.X - FirstRoomPoint.X) * (SecondRoomPoint.Y - FirstRoomPoint.Y);
+            roomSize = (SecondRoomPoint.X - FirstRoomPoint.X) * (SecondRoomPoint.Y - FirstRoomPoint.Y);
             DrawRoom();
             RoomMatrix = new int[SecondRoomPoint.Y - FirstRoomPoint.Y+1 , SecondRoomPoint.X - FirstRoomPoint.X +1];
             for (int i = FirstRoomPoint.Y; i <= SecondRoomPoint.Y; i++)
@@ -548,7 +627,7 @@ public class Generator
                 List<int> RightLength = new List<int>();
                 int y = FirstRectPoint.Y;
 
-                while (y >= 0 && y < DUNGEON_SIZE && Dungeon[y, FirstRectPoint.X] == 0)
+                while (y >= 0 && y < DUNGEON_SIDE_SIZE && Dungeon[y, FirstRectPoint.X] == 0)
                 {
                     LeftLength.Add(0);
                     RightLength.Add(0);
@@ -559,7 +638,7 @@ public class Generator
                         x--;
                     }
                     x = FirstRectPoint.X;
-                    while (x < DUNGEON_SIZE && Dungeon[y, x] == 0)
+                    while (x < DUNGEON_SIDE_SIZE && Dungeon[y, x] == 0)
                     {
                         RightLength[RightLength.Count - 1]++;
                         x++;
@@ -599,7 +678,7 @@ public class Generator
                 List<int> UpLength = new List<int>();
                 List<int> DownLength = new List<int>();
                 int x = FirstRectPoint.X;
-                while (x > 0 && x < DUNGEON_SIZE && Dungeon[FirstRectPoint.Y, x] == 0)
+                while (x > 0 && x < DUNGEON_SIDE_SIZE && Dungeon[FirstRectPoint.Y, x] == 0)
                 {
                     UpLength.Add(0);
                     DownLength.Add(0);
@@ -610,7 +689,7 @@ public class Generator
                         y--;
                     }
                     y = FirstRectPoint.Y;
-                    while (y < DUNGEON_SIZE && Dungeon[y, x] == 0)
+                    while (y < DUNGEON_SIDE_SIZE && Dungeon[y, x] == 0)
                     {
                         DownLength[DownLength.Count - 1]++;
                         y++;
@@ -726,7 +805,7 @@ public class Generator
     }
     public (int[,],List<Room> allRooms) Generate()
     {
-        int[,] Dungeon = new int[DUNGEON_SIZE, DUNGEON_SIZE];
+        int[,] Dungeon = new int[DUNGEON_SIDE_SIZE, DUNGEON_SIDE_SIZE];
         Random random = new Random();
         StartRoom startRoom = new StartRoom(null, new Point(48, 48), new Point(52, 52), Dungeon, AllRooms, random);
         AllRooms.Add(startRoom);

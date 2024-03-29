@@ -41,20 +41,33 @@ public class Cus1 : Enemies
 
             if (Vector2.Distance(player.transform.position, transform.position) > atackRadius)
             {
-                RaycastHit2D hit = Physics2D.Raycast(transform.position, player.transform.position - transform.position, Vector2.Distance(transform.position, player.transform.position), raycastLayer);
-                if (hit.collider != null)// ≈сли луч столкнулс€ с преп€тствием
+                Vector2 lineVector = (player.transform.position - transform.position).normalized;
+
+                // Ќаходим вектор, перпендикул€рный линии между точками
+                Vector2 perpendicularVector = new Vector2(-lineVector.y, lineVector.x);
+
+                // ¬ычисл€ем координаты противоположных точек
+                Vector2 extremeColliderPoint1 = (Vector2)transform.position + perpendicularVector * collider.radius * transform.localScale;
+                Vector2 extremeColliderPoint2 = (Vector2)transform.position - perpendicularVector * collider.radius * transform.localScale;
+                Debug.DrawLine(extremeColliderPoint2, extremeColliderPoint1, Color.yellow);
+
+                RaycastHit2D hit1 = Physics2D.Raycast(extremeColliderPoint1, player.transform.position - (Vector3)extremeColliderPoint1, Vector2.Distance(extremeColliderPoint1, player.transform.position), raycastLayer);
+                RaycastHit2D hit2 = Physics2D.Raycast(extremeColliderPoint2, player.transform.position -(Vector3)extremeColliderPoint2, Vector2.Distance(extremeColliderPoint2, player.transform.position), raycastLayer);
+                if (hit1.collider != null || hit2.collider != null)// ≈сли хоть один луч столкнулс€ с преп€тствием
                 {
                     if (Path != null && Path.Count > 0 && Vector2.Distance(Path[Path.Count - 1], player.ConvertPosToMatrixCoordinate()) <= atackRadius)
                     {
                         Move();
                     }
                     else { Path = AStar.FindPath(ConvertPosToMatrixCoordinate(), player.ConvertPosToMatrixCoordinate(), dungeon, new List<int>() { 1, 3 }); }
-                    Debug.DrawLine(transform.position, hit.point, Color.red); // –исуем линию до точки столкновени€
+                    Debug.DrawLine(player.transform.position, hit1.point, Color.red);
+                    Debug.DrawLine(player.transform.position, hit2.point, Color.red);// –исуем линию до точки столкновени€
                 }
-                else// ≈сли луч не столкнулс€ с преп€тствием
+                else// ≈сли лучи не столкнулись с преп€тствием
                 {
                     Move(player.transform.position);
-                    Debug.DrawLine(transform.position, player.transform.position, Color.green); // –исуем линию от начальной до конечной точки
+                    Debug.DrawLine(extremeColliderPoint1, player.transform.position, Color.green);
+                    Debug.DrawLine(extremeColliderPoint2, player.transform.position, Color.green);// –исуем линию от начальной до конечной точки
                 }
 
                 

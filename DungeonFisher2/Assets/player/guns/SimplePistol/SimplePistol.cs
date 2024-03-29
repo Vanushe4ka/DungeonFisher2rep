@@ -4,6 +4,12 @@ using UnityEngine;
 
 public class SimplePistol : Gun
 {
+    public override void Update()
+    {
+        if (!player.IsCanPlay()) { return; }
+        base.Update();
+        if (Input.GetKeyDown(KeyCode.Mouse0) && shotClodownTimer <= 0) { Shot(); shotClodownTimer = shotColdownTime; }
+    }
     public override void Shot()
     {
         if (player != null) { player.ShakeCamera(0.01f, 0.05f); }

@@ -40,7 +40,7 @@ public class AStar
                 if (lp == to) { return BuildPath(new PointAStat(curentPoint.lengthFromStart + 1, lp, curentPoint, to)); }
                 if (pointsToMove.Contains(matrix[lp.y,lp.x]) && !checkedPoints.Contains(lp)) { pointsForChecks.Add(new PointAStat(curentPoint.lengthFromStart + 1, lp, curentPoint, to)); }
             }
-            if (curentPoint.point.x < Generator.DUNGEON_SIZE) 
+            if (curentPoint.point.x < Generator.DUNGEON_SIDE_SIZE) 
             {
                 Vector2Int rp = new Vector2Int(curentPoint.point.x + 1, curentPoint.point.y);
                 if (rp == to) { return BuildPath(new PointAStat(curentPoint.lengthFromStart + 1, rp, curentPoint, to)); }
@@ -52,7 +52,7 @@ public class AStar
                 if (dp == to) { return BuildPath(new PointAStat(curentPoint.lengthFromStart + 1, dp, curentPoint, to)); }
                 if (pointsToMove.Contains(matrix[dp.y, dp.x]) && !checkedPoints.Contains(dp)) { pointsForChecks.Add(new PointAStat(curentPoint.lengthFromStart + 1, dp, curentPoint, to)); }
             }
-            if (curentPoint.point.y < Generator.DUNGEON_SIZE) 
+            if (curentPoint.point.y < Generator.DUNGEON_SIDE_SIZE) 
             {
                 Vector2Int up = new Vector2Int(curentPoint.point.x, curentPoint.point.y + 1);
                 if (up == to) { return BuildPath(new PointAStat(curentPoint.lengthFromStart + 1, up, curentPoint, to)); }

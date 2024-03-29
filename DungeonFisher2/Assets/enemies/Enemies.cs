@@ -10,6 +10,7 @@ public class Enemies : Person
     public float atackRadius;
     protected Vector2Int direction;
     public EnemyHitbox hitBox;
+    public CircleCollider2D collider;
     
     public float rechargeTime;
     public float rechargeTimer;
@@ -19,7 +20,7 @@ public class Enemies : Person
     {
         base.Start();
         rechargeTimer = rechargeTime;
-        
+        collider = gameObject.GetComponent<CircleCollider2D>();
     }
     public virtual void FixedUpdate()
     {
