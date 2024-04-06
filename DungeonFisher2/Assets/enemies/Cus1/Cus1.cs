@@ -12,7 +12,7 @@ public class Cus1 : Enemies
     private void OnCollisionStay2D(Collision2D collision)
     {
         GameObject otherObject = collision.gameObject;
-        if (otherObject.tag == "player" && attacking)
+        if (otherObject.tag == "Player" && attacking)
         {
             attacking = false;
             player.Damage(damageDealt);
@@ -32,13 +32,12 @@ public class Cus1 : Enemies
             if (direction.x == -1) 
             { 
                 spriteRenderer.flipX = true;
-                hitBox.ChangeDirection(3);
             }
-            else { spriteRenderer.flipX = false; hitBox.ChangeDirection(2); }
-            if (direction.y == 0) { animator.SetInteger("direction", 2); }
-            if (direction.y == 1) { animator.SetInteger("direction", 1); hitBox.ChangeDirection(1); }
-            if (direction.y == -1) { animator.SetInteger("direction", 0); hitBox.ChangeDirection(0); }
-
+            else { spriteRenderer.flipX = false; }
+            int intDir = ConvertDirToInt4(direction);
+            animator.SetInteger("direction", intDir);
+            hitBox.ChangeDirection(intDir);
+            
             if (Vector2.Distance(player.transform.position, transform.position) > atackRadius)
             {
                 Vector2 lineVector = (player.transform.position - transform.position).normalized;
@@ -59,7 +58,7 @@ public class Cus1 : Enemies
                     {
                         Move();
                     }
-                    else { Path = AStar.FindPath(ConvertPosToMatrixCoordinate(), player.ConvertPosToMatrixCoordinate(), dungeon, new List<int>() { 1, 3 }); }
+                    else { Path = PathFinder.FindPath(ConvertPosToMatrixCoordinate(), player.ConvertPosToMatrixCoordinate(), dungeon, new List<int>() { 1, 3 }); }
                     Debug.DrawLine(player.transform.position, hit1.point, Color.red);
                     Debug.DrawLine(player.transform.position, hit2.point, Color.red);// Рисуем линию до точки столкновения
                 }

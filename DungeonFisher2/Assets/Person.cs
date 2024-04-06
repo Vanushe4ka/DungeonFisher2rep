@@ -39,7 +39,18 @@ public class Person : MonoBehaviour
     }
     public Vector2Int ConvertMatrixCoordinateToPos(Vector2Int matrixCoordinate)
     {
+        // (-1,-1) - 0, ( 0,-1) - 1, ( 1,-1) - 2, (-1, 0) - 3
+        // ( 0, 0) - 4, ( 1, 0) - 5, (-1, 1) - 6, ( 0, 1) - 7, ( 1, 1) - 8
         return new Vector2Int(matrixCoordinate.x +1,matrixCoordinate.y+1);
+    }
+    public int ConvertDirToInt4(Vector2Int dir)
+    {
+        // (0,-1) - 0, (-1,0) - 1, (1,0) - 2, (0,1) - 3
+        return (Mathf.CeilToInt((dir.x + dir.y * 3) / 2f) + 1);
+    }
+    public int ConvertDirToInt8(Vector2Int dir)
+    {
+        return (dir.x + (dir.y * 3)) + 4;
     }
     public virtual void Dead()
     {
@@ -62,7 +73,7 @@ public class Person : MonoBehaviour
     }
     public virtual void CalculateLayer()
     {
-        spriteRenderer.sortingOrder = 400 - Mathf.RoundToInt(transform.position.y * 4);
+        spriteRenderer.sortingOrder = 600 - Mathf.RoundToInt(transform.position.y * 4);
         if (reflectionRenderer != null) { reflectionRenderer.sortingOrder = spriteRenderer.sortingOrder; }
     }
     protected IEnumerator ChangeColorBlackout()

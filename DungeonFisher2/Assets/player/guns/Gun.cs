@@ -22,6 +22,10 @@ public class Gun : MonoBehaviour
     public Transform reflectionPivot;
     public Reflector reflector;
     public SpriteRenderer reflectionRenderer;
+    public bool isInit()
+    {
+        return spriteRenderer != null && animator != null && transform != null;
+    }
 
     private void Start()
     {

@@ -5,7 +5,7 @@ m_ProjectFiles:
     m_ContentTrackingEnabled: 1
     m_ModificationDate:
       serializedVersion: 2
-      ticks: 638452601243617460
+      ticks: 638452601260000000
     m_Hash: 446592977
   m_LockFileStatus:
     m_FilePath: D:/Unity progects/DungeonFisher2rep/DungeonFisher2/Packages/packages-lock.json
@@ -13,7 +13,7 @@ m_ProjectFiles:
     m_ContentTrackingEnabled: 1
     m_ModificationDate:
       serializedVersion: 2
-      ticks: 638452601696892196
+      ticks: 638452601700000000
     m_Hash: 3774049850
 m_EmbeddedPackageManifests:
   m_ManifestsStatus: {}
@@ -3886,10 +3886,12 @@ m_ResolvedPackages:
     - 1.8.10
     - 1.8.11
     - 1.8.12
+    - 1.8.13
     compatible:
     - 1.8.11
     - 1.8.12
-    verified: 1.8.12
+    - 1.8.13
+    verified: 1.8.13
   dependencies:
   - name: com.unity.mathematics
     version: 1.2.1

@@ -13,7 +13,9 @@ public class Level1Manager : LevelManager
     public Tilemap wallsTilemap;
     public Tilemap briegesTilemap;
     public Tilemap reflectionsTilemap;
-    public Player player; 
+    public Player player;
+    public GameObject playerPrefab;
+    public GameObject[] HPImages;
     List<Generator.Room> AllRooms;
     
     public Texture2D fullMap;
@@ -63,6 +65,8 @@ public class Level1Manager : LevelManager
     Sprite LConvareReflection;
     [SerializeField]
     Sprite[] BriegesReflection;
+
+    public Sprite Red;
     struct WallDir
     {
         public readonly int r;
@@ -155,7 +159,7 @@ public class Level1Manager : LevelManager
     void CheckOpeningMap()
     {
         Vector2Int playerPos = player.ConvertPosToMatrixCoordinate();
-        if (player.DetermPointInMatrix(openedDungeonMatrix) == 0)
+        if (!player.inBoat && player.DetermPointInMatrix(openedDungeonMatrix) == 0)
         {
             foreach(Generator.Room room in generator.AllRooms)
             {
@@ -287,16 +291,21 @@ public class Level1Manager : LevelManager
     {
         enemiesInDungeon = new int[] { 40 };//////////////////это пока не добавили механику рыбалки
         WaterSetting();
-
-        (int[,] dungeon, List<Generator.Room> allRooms) = generator.Generate();
+        (int[,] dungeon, List<Generator.Room> allRooms,Vector2 playerStartPos,List<Vector2Int> PathToFishingPos, List<Vector2Int> PathToEndShipPos, Vector2Int shipDirection) = generator.Generate();
         dungeonMatrix = dungeon;
         AllRooms = allRooms;
         for (int i = 0; i < allRooms.Count; i++)
         {
             if (allRooms[i] is Generator.BossRoom) { bossRoomCenter = new Vector2((allRooms[i].FirstRoomPoint.X + allRooms[i].SecondRoomPoint.X)/2+1, (allRooms[i].FirstRoomPoint.Y + allRooms[i].SecondRoomPoint.Y) / 2+1); }
         }
+        playerPrefab.GetComponent<Player>().startBoatDirection = shipDirection;
+        playerPrefab.GetComponent<Player>().pathToFishingPoint = PathToFishingPos;
+        playerPrefab.GetComponent<Player>().pathToEndPoint = PathToEndShipPos;
+        playerPrefab.GetComponent<Player>().HPImages = HPImages;
+        player = Instantiate(playerPrefab, playerStartPos, Quaternion.Euler(0, 0, 0)).GetComponent<Player>();
         player.dungeon = dungeon;
         player.levelManager = this;
+
         openedMap = new Texture2D(100, 100);
         openedMap.filterMode = FilterMode.Point;
         
@@ -417,6 +426,10 @@ public class Level1Manager : LevelManager
                             briegesTilemap.SetTile(new Vector3Int(x, y, 1), newTile);
                         }
                         break;
+                    //case 5:
+                    //    newTile.sprite = Red;
+                    //    wallsTilemap.SetTile(new Vector3Int(x, y, 0), newTile);
+                    //    break;
                 }
             }
         }

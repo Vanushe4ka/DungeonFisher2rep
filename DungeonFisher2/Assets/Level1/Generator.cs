@@ -13,8 +13,11 @@ public class Generator
     static bool thereBossRoom;
     const int MIN_DUNGEON_SIZE = 900;
     const int MAX_DUNGEON_SIZE = 1100;
+    const int SHIP_AREA_WIDTH = 3;
+    const int DISTANCE_START_TO_FISH_P = 44;
     static int thisDungeonSize;
     public List<Room> AllRooms = new List<Room>();
+    public static Vector2Int ShipDir;
     public struct Point
     {
         public int X { get; }
@@ -55,8 +58,9 @@ public class Generator
         {
             base.DrawRoom();
             Point shipDirection = FreeDirections[Random.Next(0, FreeDirections.Count)];
+            ShipDir = new Vector2Int(shipDirection.X, shipDirection.Y);
             FreeDirections.Remove(shipDirection);
-            int shipWidth = 6;
+            int shipWidth = 45;
             if (shipDirection.X != 0)
             {
                 int fillWidth = 0;
@@ -65,7 +69,7 @@ public class Generator
                 else { startFillPoint = FirstRoomPoint.X + shipDirection.X; }
                 while (fillWidth < shipWidth && fillWidth > -shipWidth)
                 {
-                    for (int i = FirstRoomPoint.Y; i <= SecondRoomPoint.Y; i++)
+                    for (int i = FirstRoomPoint.Y-SHIP_AREA_WIDTH; i <= SecondRoomPoint.Y+SHIP_AREA_WIDTH; i++)
                     {
                         Dungeon[i, startFillPoint + fillWidth] = 5;
                     }
@@ -80,7 +84,7 @@ public class Generator
                 else { startFillPoint = FirstRoomPoint.Y + shipDirection.Y; }
                 while (fillWidth < shipWidth && fillWidth > -shipWidth)
                 {
-                    for (int i = FirstRoomPoint.X; i <= SecondRoomPoint.X; i++)
+                    for (int i = FirstRoomPoint.X-SHIP_AREA_WIDTH; i <= SecondRoomPoint.X+SHIP_AREA_WIDTH; i++)
                     {
                         Dungeon[startFillPoint + fillWidth, i] = 5;
                     }
@@ -803,7 +807,7 @@ public class Generator
         }
 
     }
-    public (int[,],List<Room> allRooms) Generate()
+    public (int[,],List<Room> allRooms, Vector2Int playerStartPos, List<Vector2Int> PathToFishPoint, List<Vector2Int> PathToEndPoint, Vector2Int shipDirection) Generate()
     {
         int[,] Dungeon = new int[DUNGEON_SIDE_SIZE, DUNGEON_SIDE_SIZE];
         Random random = new Random();
@@ -824,7 +828,70 @@ public class Generator
             Room thisRoom = AllRooms[random.Next(1, AllRooms.Count)];
             thisRoom.AddRoom();
         } while (!thereBossRoom);
-        return (Dungeon,AllRooms);
+        (Vector2Int playerStartPos, List<Vector2Int> pathToFisingPoint, List<Vector2Int> pathToEndPoint) = DeterminingShipInitialRoute();
+
+
+        return (Dungeon,AllRooms, playerStartPos,pathToFisingPoint ,pathToEndPoint , -ShipDir);
+    }
+    public (Vector2Int playerStartPos,List<Vector2Int> pathToFisingPoint, List<Vector2Int> pathToEndPoint) DeterminingShipInitialRoute()
+    {
+        Vector2Int playerStartPos;
+        bool boatRoateDir = true;//направление куда я поверну лодку когда она будет подплывать к точке рыбалки 
+        if (ShipDir.x == 0)
+        {
+            if (boatRoateDir) { playerStartPos = new Vector2Int(49, 51) + ShipDir * 50; }
+            else { playerStartPos = new Vector2Int(53, 51) + ShipDir * 50; }
+        }
+        else
+        {
+            if (boatRoateDir) { playerStartPos = new Vector2Int(51, 49) + ShipDir * 50; }
+            else { playerStartPos = new Vector2Int(51, 53) + ShipDir * 50; }
+        }
+        List<Vector2Int> pathToFisingPoint = new List<Vector2Int>();
+        pathToFisingPoint.Add(playerStartPos);
+        pathToFisingPoint.Add(playerStartPos - ShipDir * DISTANCE_START_TO_FISH_P);
+
+        if (ShipDir.x == 0)
+        {
+            if (boatRoateDir) 
+            {
+                pathToFisingPoint.Add(new Vector2Int(53, pathToFisingPoint[1].y));
+                pathToFisingPoint.Add(new Vector2Int(53, pathToFisingPoint[1].y + ShipDir.y * 3));
+            }
+            else 
+            {
+                pathToFisingPoint.Add(new Vector2Int(53, pathToFisingPoint[1].y));
+                pathToFisingPoint.Add(new Vector2Int(53, pathToFisingPoint[1].y + ShipDir.y * 3));
+            }
+        }
+        else
+        {
+            if (boatRoateDir) 
+            {
+                pathToFisingPoint.Add(new Vector2Int(pathToFisingPoint[1].x, 53));
+                pathToFisingPoint.Add(new Vector2Int(pathToFisingPoint[1].x + ShipDir.x * 3, 53));
+            }
+            else 
+            {
+                pathToFisingPoint.Add(new Vector2Int(pathToFisingPoint[1].x, 49));
+                pathToFisingPoint.Add(new Vector2Int(pathToFisingPoint[1].x + ShipDir.x * 3, 49));
+            }
+        }
+        List<Vector2Int> pathToEndPoint = new List<Vector2Int>();
+        pathToEndPoint.Add(pathToFisingPoint[pathToFisingPoint.Count - 1]);
+        pathToEndPoint.Add(pathToFisingPoint[pathToFisingPoint.Count - 1] + ShipDir * 3);
+        if (ShipDir.x == 0)
+        {
+            pathToEndPoint.Add(new Vector2Int(51, pathToEndPoint[1].y));
+            pathToEndPoint.Add(new Vector2Int(51, pathToFisingPoint[1].y));
+        }
+        else
+        {
+            pathToEndPoint.Add(new Vector2Int(pathToEndPoint[1].x, 51));
+            pathToEndPoint.Add(new Vector2Int(pathToFisingPoint[1].x, 51));
+        }
+        
+        return (playerStartPos, pathToFisingPoint, pathToEndPoint);
     }
 }
 

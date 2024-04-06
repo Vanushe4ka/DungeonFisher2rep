@@ -13,7 +13,8 @@ public class EnemyHitbox : MonoBehaviour
     }
     public void ChangeDirection(int dir)
     {
-        for (int i = 0; i < 4; i++) { HitBoxesDependingDirection[i].enabled = false; }
+        if (dir >= HitBoxesDependingDirection.Length) { return; }
+        for (int i = 0; i < HitBoxesDependingDirection.Length; i++) { HitBoxesDependingDirection[i].enabled = false; }
         HitBoxesDependingDirection[dir].enabled = true;
     }
     void OnCollisionEnter2D(Collision2D collision)

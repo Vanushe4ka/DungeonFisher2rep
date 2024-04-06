@@ -20,10 +20,30 @@ public class Player : Person
 
     private Vector2Int LastPosition;
     private IEnumerator currentShakeCoroutine;
+    public bool inBoat= true;
+    private GameObject boat;
+    public GameObject BoatPrefab;
+    public Vector2Int startBoatDirection;
+    public List<Vector2Int> pathToFishingPoint;
+    public List<Vector2Int> pathToEndPoint;
+    public void Awake()
+    {
+        cameraTransform = Camera.main.transform;
+    }
     public override void Start()
     {
         base.Start();
         for(int i = 0; i < AllGuns.Length; i++) { AllGuns[i].player = this; }
+        boat = GameObject.FindGameObjectWithTag("Boat");
+        if (boat == null)
+        {
+            BoatPrefab.GetComponent<Boat>().direction = startBoatDirection;
+            BoatPrefab.GetComponent<Boat>().pathToFishingPoint = pathToFishingPoint;
+            BoatPrefab.GetComponent<Boat>().path = pathToEndPoint;
+            boat = Instantiate(BoatPrefab, transform.position, transform.rotation);
+        }
+        boat.GetComponent<Boat>().localPlayer = this;
+        boat.GetComponent<Boat>().PlayerSeat(this);
         DrawHP();
     }
     public override void CalculateLayer()
@@ -110,43 +130,46 @@ public class Player : Person
     void  FixedUpdate()
     {
         CalculateLayer();
-        int dungeonPoint = DetermPointInMatrix();
-        if (dungeonPoint == 0 || dungeonPoint == 2 || dungeonPoint == 5)
+        if (!inBoat)
         {
-            if (HP == 1) { Damage(1);Dead(); }
-            else if (!isDead && HP > 1)
+            int dungeonPoint = DetermPointInMatrix();
+            if (dungeonPoint == 0 || dungeonPoint == 2 || dungeonPoint == 5)
             {
-                isFellToWater = true;
-            }
-            if (!isRipplesCreated)
-            {
-                ripplesObject = Instantiate(ripplesPrefab, transform.position, transform.rotation);
-                isRipplesCreated = true;
+                if (HP == 1) { Damage(1); Dead(); }
+                else if (!isDead && HP > 1)
+                {
+                    isFellToWater = true;
+                }
+                if (!isRipplesCreated)
+                {
+                    ripplesObject = Instantiate(ripplesPrefab, transform.position, transform.rotation);
+                    isRipplesCreated = true;
+                }
+                else
+                {
+                    if (ripplesObject != null) { ripplesObject.transform.position = transform.position; }
+                }
+                rigidbody.velocity *= 0.8f;
+                transform.localScale = Vector3.Lerp(transform.localScale, new Vector3(0, 0, 0), 0.1f);
+                if (isFellToWater && transform.localScale.x < 0.1f)
+                {
+                    gameObject.transform.position = (Vector2)ConvertMatrixCoordinateToPos(LastPosition);
+                    isFellToWater = false;
+                    Damage(1);
+                }
+                //if (transform.localScale.x <= 0.25f) { Destroy(gameObject); }
+
             }
             else
             {
-                if (ripplesObject != null) { ripplesObject.transform.position = transform.position; }
-            }
-            rigidbody.velocity *= 0.8f;
-            transform.localScale = Vector3.Lerp(transform.localScale, new Vector3(0, 0, 0), 0.1f);
-            if (isFellToWater && transform.localScale.x < 0.1f)
-            {
-                Debug.Log("StartFindingPoint");
-                gameObject.transform.position = (Vector2)ConvertMatrixCoordinateToPos(LastPosition);
-                Debug.Log("EndFindingPoint");
+                transform.localScale = originalScale;
+                isRipplesCreated = false;
                 isFellToWater = false;
-                Damage(1);
+                LastPosition = ConvertPosToMatrixCoordinate();
             }
-            //if (transform.localScale.x <= 0.25f) { Destroy(gameObject); }
-
         }
-        else
-        {
-            transform.localScale = originalScale;
-            isRipplesCreated = false;
-            isFellToWater = false;
-            LastPosition = ConvertPosToMatrixCoordinate();
-        }
+        
+        
 
         if (IsCanPlay())
         {
@@ -182,116 +205,120 @@ public class Player : Person
             Vector3 direction = mousePos - transform.position;
             float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
             //Debug.Log(Mathf.Cos(angle * Mathf.PI / 180));
-            if (angle <= 135 && angle > 45)
+            if (ActiveGun != null && ActiveGun.isInit())
             {
-                ActiveGun.spriteRenderer.flipY = false;
-                ActiveGun.spriteRenderer.flipX = false;
-                if (!ActiveGun.animator.GetBool("isDownDirection"))
+                if (angle <= 135 && angle > 45)
                 {
-                    //получение инфы о текущей анимации
-                    AnimatorClipInfo[] currentClipInfo = ActiveGun.animator.GetCurrentAnimatorClipInfo(0);
-                    if (currentClipInfo[0].clip.name == "SideShotAnim")//если это анимация выстрела в бок
+                    ActiveGun.spriteRenderer.flipY = false;
+                    ActiveGun.spriteRenderer.flipX = false;
+                    if (!ActiveGun.animator.GetBool("isDownDirection"))
                     {
-                        float normalizedTime = ActiveGun.animator.GetCurrentAnimatorStateInfo(0).normalizedTime;
-                        ActiveGun.animator.Play("DownShotAnim", 0, normalizedTime);
+                        //получение инфы о текущей анимации
+                        AnimatorClipInfo[] currentClipInfo = ActiveGun.animator.GetCurrentAnimatorClipInfo(0);
+                        if (currentClipInfo[0].clip.name == "SideShotAnim")//если это анимация выстрела в бок
+                        {
+                            float normalizedTime = ActiveGun.animator.GetCurrentAnimatorStateInfo(0).normalizedTime;
+                            ActiveGun.animator.Play("DownShotAnim", 0, normalizedTime);
+                        }
+                        ActiveGun.animator.SetBool("isDownDirection", true);
                     }
-                    ActiveGun.animator.SetBool("isDownDirection", true);
-                }
-                if (ActiveGun != null)
-                {
-                    ActiveGun.spriteRenderer.sortingOrder = spriteRenderer.sortingOrder - 1;
-                    if (ActiveGun.reflectionRenderer != null) { ActiveGun.reflectionRenderer.sortingOrder = ActiveGun.spriteRenderer.sortingOrder; }
-                }
-                Quaternion rotation = Quaternion.AngleAxis(angle + 90, Vector3.forward);
-                ActiveGun.transform.rotation = Quaternion.Slerp(ActiveGun.transform.rotation, rotation, ActiveGun.rotationSpeed * Time.deltaTime);
-
-                animator.SetInteger("direction", 1);
-                rotateDirection = new Vector2Int(0, 1);
-            }
-            else if (angle <= 45 && angle > -45)
-            {
-                ActiveGun.spriteRenderer.flipY = false;
-                ActiveGun.spriteRenderer.flipX = false;
-                if (ActiveGun.animator.GetBool("isDownDirection"))
-                {
-                    //получение инфы о текущей анимации
-                    AnimatorClipInfo[] currentClipInfo = ActiveGun.animator.GetCurrentAnimatorClipInfo(0);
-                    if (currentClipInfo[0].clip.name == "DownShotAnim")//если это анимация выстрела в низ
+                    if (ActiveGun != null)
                     {
-                        float normalizedTime = ActiveGun.animator.GetCurrentAnimatorStateInfo(0).normalizedTime;
-                        ActiveGun.animator.Play("SideShotAnim", 0, normalizedTime);
+                        ActiveGun.spriteRenderer.sortingOrder = spriteRenderer.sortingOrder - 1;
+                        if (ActiveGun.reflectionRenderer != null) { ActiveGun.reflectionRenderer.sortingOrder = ActiveGun.spriteRenderer.sortingOrder; }
                     }
-                    ActiveGun.animator.SetBool("isDownDirection", false);
+                    Quaternion rotation = Quaternion.AngleAxis(angle + 90, Vector3.forward);
+                    ActiveGun.transform.rotation = Quaternion.Slerp(ActiveGun.transform.rotation, rotation, ActiveGun.rotationSpeed * Time.deltaTime);
+
+                    animator.SetInteger("direction", 1);
+                    rotateDirection = new Vector2Int(0, 1);
                 }
-
-                if (ActiveGun != null)
+                else if (angle <= 45 && angle > -45)
                 {
-                    ActiveGun.spriteRenderer.sortingOrder = spriteRenderer.sortingOrder + 1;
-                    if (ActiveGun.reflectionRenderer != null) { ActiveGun.reflectionRenderer.sortingOrder = ActiveGun.spriteRenderer.sortingOrder; }
-                }
-
-                Quaternion rotation = Quaternion.AngleAxis(angle, Vector3.forward);
-                ActiveGun.transform.rotation = Quaternion.Slerp(ActiveGun.transform.rotation, rotation, ActiveGun.rotationSpeed * Time.deltaTime);
-
-                animator.SetInteger("direction", 2);
-                rotateDirection = new Vector2Int(1, 0);
-            }
-            else if (angle <= -45 && angle > -135)
-            {
-                ActiveGun.spriteRenderer.flipY = false;
-                ActiveGun.spriteRenderer.flipX = false;
-                if (!ActiveGun.animator.GetBool("isDownDirection"))
-                {
-                    //получение инфы о текущей анимации
-                    AnimatorClipInfo[] currentClipInfo = ActiveGun.animator.GetCurrentAnimatorClipInfo(0);
-                    if (currentClipInfo[0].clip.name == "SideShotAnim")//если это анимация выстрела в бок
+                    ActiveGun.spriteRenderer.flipY = false;
+                    ActiveGun.spriteRenderer.flipX = false;
+                    if (ActiveGun.animator.GetBool("isDownDirection"))
                     {
-                        float normalizedTime = ActiveGun.animator.GetCurrentAnimatorStateInfo(0).normalizedTime;
-                        ActiveGun.animator.Play("DownShotAnim", 0, normalizedTime);
+                        //получение инфы о текущей анимации
+                        AnimatorClipInfo[] currentClipInfo = ActiveGun.animator.GetCurrentAnimatorClipInfo(0);
+                        if (currentClipInfo[0].clip.name == "DownShotAnim")//если это анимация выстрела в низ
+                        {
+                            float normalizedTime = ActiveGun.animator.GetCurrentAnimatorStateInfo(0).normalizedTime;
+                            ActiveGun.animator.Play("SideShotAnim", 0, normalizedTime);
+                        }
+                        ActiveGun.animator.SetBool("isDownDirection", false);
                     }
-                    ActiveGun.animator.SetBool("isDownDirection", true);
-                }
-                if (ActiveGun != null)
-                {
-                    ActiveGun.spriteRenderer.sortingOrder = spriteRenderer.sortingOrder + 1;
-                    if (ActiveGun.reflectionRenderer != null) { ActiveGun.reflectionRenderer.sortingOrder = ActiveGun.spriteRenderer.sortingOrder; }
-                }
-                Quaternion rotation = Quaternion.AngleAxis(angle + 90, Vector3.forward);
-                ActiveGun.transform.rotation = Quaternion.Slerp(ActiveGun.transform.rotation, rotation, ActiveGun.rotationSpeed * Time.deltaTime);
 
-                animator.SetInteger("direction", 0);
-                rotateDirection = new Vector2Int(0, -1);
-            }
-            else if ((angle <= -135 && angle > -180) || (angle <= 180 && angle > 135))
-            {
-                ActiveGun.spriteRenderer.flipY = true;
-                ActiveGun.spriteRenderer.flipX = false;
-                if (ActiveGun.animator.GetBool("isDownDirection"))
-                {
-                    //получение инфы о текущей анимации
-                    AnimatorClipInfo[] currentClipInfo = ActiveGun.animator.GetCurrentAnimatorClipInfo(0);
-                    if (currentClipInfo[0].clip.name == "DownShotAnim")//если это анимация выстрела в низ
+                    if (ActiveGun != null)
                     {
-                        float normalizedTime = ActiveGun.animator.GetCurrentAnimatorStateInfo(0).normalizedTime;
-                        ActiveGun.animator.Play("SideShotAnim", 0, normalizedTime);
+                        ActiveGun.spriteRenderer.sortingOrder = spriteRenderer.sortingOrder + 1;
+                        if (ActiveGun.reflectionRenderer != null) { ActiveGun.reflectionRenderer.sortingOrder = ActiveGun.spriteRenderer.sortingOrder; }
                     }
-                    ActiveGun.animator.SetBool("isDownDirection", false);
+
+                    Quaternion rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+                    ActiveGun.transform.rotation = Quaternion.Slerp(ActiveGun.transform.rotation, rotation, ActiveGun.rotationSpeed * Time.deltaTime);
+
+                    animator.SetInteger("direction", 2);
+                    rotateDirection = new Vector2Int(1, 0);
                 }
-                if (ActiveGun != null)
+                else if (angle <= -45 && angle > -135)
                 {
-                    ActiveGun.spriteRenderer.sortingOrder = spriteRenderer.sortingOrder - 1;
-                    if (ActiveGun.reflectionRenderer != null) { ActiveGun.reflectionRenderer.sortingOrder = ActiveGun.spriteRenderer.sortingOrder; }
+                    ActiveGun.spriteRenderer.flipY = false;
+                    ActiveGun.spriteRenderer.flipX = false;
+                    if (!ActiveGun.animator.GetBool("isDownDirection"))
+                    {
+                        //получение инфы о текущей анимации
+                        AnimatorClipInfo[] currentClipInfo = ActiveGun.animator.GetCurrentAnimatorClipInfo(0);
+                        if (currentClipInfo[0].clip.name == "SideShotAnim")//если это анимация выстрела в бок
+                        {
+                            float normalizedTime = ActiveGun.animator.GetCurrentAnimatorStateInfo(0).normalizedTime;
+                            ActiveGun.animator.Play("DownShotAnim", 0, normalizedTime);
+                        }
+                        ActiveGun.animator.SetBool("isDownDirection", true);
+                    }
+                    if (ActiveGun != null)
+                    {
+                        ActiveGun.spriteRenderer.sortingOrder = spriteRenderer.sortingOrder + 1;
+                        if (ActiveGun.reflectionRenderer != null) { ActiveGun.reflectionRenderer.sortingOrder = ActiveGun.spriteRenderer.sortingOrder; }
+                    }
+                    Quaternion rotation = Quaternion.AngleAxis(angle + 90, Vector3.forward);
+                    ActiveGun.transform.rotation = Quaternion.Slerp(ActiveGun.transform.rotation, rotation, ActiveGun.rotationSpeed * Time.deltaTime);
+
+                    animator.SetInteger("direction", 0);
+                    rotateDirection = new Vector2Int(0, -1);
                 }
-                Quaternion rotation = Quaternion.AngleAxis(angle, Vector3.forward);
-                ActiveGun.transform.rotation = Quaternion.Slerp(ActiveGun.transform.rotation, rotation, ActiveGun.rotationSpeed * Time.deltaTime);
+                else if ((angle <= -135 && angle > -180) || (angle <= 180 && angle > 135))
+                {
+                    ActiveGun.spriteRenderer.flipY = true;
+                    ActiveGun.spriteRenderer.flipX = false;
+                    if (ActiveGun.animator.GetBool("isDownDirection"))
+                    {
+                        //получение инфы о текущей анимации
+                        AnimatorClipInfo[] currentClipInfo = ActiveGun.animator.GetCurrentAnimatorClipInfo(0);
+                        if (currentClipInfo[0].clip.name == "DownShotAnim")//если это анимация выстрела в низ
+                        {
+                            float normalizedTime = ActiveGun.animator.GetCurrentAnimatorStateInfo(0).normalizedTime;
+                            ActiveGun.animator.Play("SideShotAnim", 0, normalizedTime);
+                        }
+                        ActiveGun.animator.SetBool("isDownDirection", false);
+                    }
+                    if (ActiveGun != null)
+                    {
+                        ActiveGun.spriteRenderer.sortingOrder = spriteRenderer.sortingOrder - 1;
+                        if (ActiveGun.reflectionRenderer != null) { ActiveGun.reflectionRenderer.sortingOrder = ActiveGun.spriteRenderer.sortingOrder; }
+                    }
+                    Quaternion rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+                    ActiveGun.transform.rotation = Quaternion.Slerp(ActiveGun.transform.rotation, rotation, ActiveGun.rotationSpeed * Time.deltaTime);
 
-                animator.SetInteger("direction", 2);
-                rotateDirection = new Vector2Int(-1, 0);
+                    animator.SetInteger("direction", 2);
+                    rotateDirection = new Vector2Int(-1, 0);
+                }
+                ActiveGun.direction = rotateDirection;
+                ActiveGun.transform.localPosition = new Vector3(ActiveGun.startGunPos.x * Mathf.Cos(angle * Mathf.PI / 180), ActiveGun.startGunPos.y * -Mathf.Sin(angle * Mathf.PI / 180), 0);
+
             }
-            ActiveGun.direction = rotateDirection;
-            ActiveGun.transform.localPosition = new Vector3(ActiveGun.startGunPos.x * Mathf.Cos(angle * Mathf.PI / 180), ActiveGun.startGunPos.y * -Mathf.Sin(angle * Mathf.PI / 180), 0);
-
         }
+            
         
     }
 
